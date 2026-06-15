@@ -1,0 +1,1054 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ระบบจัดการสต็อกเวชภัณฑ์</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+
+    <script>
+        tailwind.config = {
+            theme: { extend: { fontFamily: { sans: ['Sarabun', 'sans-serif'] } } }
+        }
+    </script>
+    <style>
+        @keyframes blink-red { 0%, 100% { background-color: #fee2e2; } 50% { background-color: #fca5a5; } }
+        .row-blink-red { animation: blink-red 1.2s infinite; }
+        .row-blink-red td { color: #7f1d1d !important; }
+
+        @keyframes blink-orange { 0%, 100% { background-color: #ffedd5; } 50% { background-color: #fdba74; } }
+        .row-blink-orange { animation: blink-orange 1.2s infinite;}
+        .row-blink-orange td { color: #9a3412 !important; }
+
+        .tab-active { border-bottom: 2px solid #059669; color: #059669; }
+
+        @media print {
+            @page { margin: 0.7cm; }
+            body { padding-top: 0 !important; padding-bottom: 0 !important; color: #000 !important; }
+            table { border-collapse: collapse !important; width: 100% !important; page-break-inside: auto; }
+            tr { page-break-inside: avoid; page-break-after: auto; }
+            table, th, td { border: 1px solid #000000 !important; }
+            thead, thead tr, thead th { background-color: #1f2937 !important; color: #ffffff !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            tbody td, tbody span, .row-blink-red td, .row-blink-orange td { color: #000000 !important; animation: none !important; background-color: transparent !important; }
+            tbody span { background: transparent !important; border: none !important; box-shadow: none !important; transform: none !important; padding: 0 !important; }
+            .divide-y > :not([hidden]) ~ :not([hidden]) { border-top-width: 0 !important; }
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-gray-50 text-gray-800 font-sans print:bg-white print:p-0 p-4 md:p-8 relative">
+
+    <div id="loader" class="fixed inset-0 bg-white/80 z-[100] flex flex-col justify-center items-center hidden">
+        <div class="animate-spin rounded-full h-12 w-12 border-b-4 border-green-600 mb-4"></div>
+        <p id="loaderText" class="text-gray-700 font-bold text-lg">กำลังโหลดข้อมูล...</p>
+    </div>
+
+    <div class="max-w-7xl mx-auto space-y-6 print:space-y-0 print:max-w-none">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white p-6 rounded-2xl shadow-sm border border-gray-100 print:hidden">
+            <div>
+                <h1 class="text-2xl md:text-3xl font-bold text-gray-900">ระบบจัดการสต็อกเวชภัณฑ์</h1>
+            </div>
+            <div class="flex gap-3 w-full md:w-auto">
+                <button onclick="openModal('receiveModal')" class="flex-1 md:flex-none flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-xl font-semibold shadow-sm transition-all active:scale-95">
+                    <i data-lucide="package-plus" class="w-5 h-5"></i> รับเข้า
+                </button>
+                <button onclick="openModal('disburseModal')" class="flex-1 md:flex-none flex items-center justify-center gap-2 bg-orange-500 hover:bg-orange-600 text-white px-6 py-3 rounded-xl font-semibold shadow-sm transition-all active:scale-95">
+                    <i data-lucide="package-minus" class="w-5 h-5"></i> เบิกออก
+                </button>
+            </div>
+        </div>
+
+        <div class="hidden print:block text-center mb-6">
+            <h1 class="text-2xl font-bold text-gray-900">รายงานสรุปเวชภัณฑ์คงคลัง</h1>
+            <p class="text-gray-500 mt-2" id="printDate"></p>
+        </div>
+
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden print:shadow-none print:border-none print:overflow-visible">
+            
+            <div class="flex border-b border-gray-100 bg-gray-50/50 print:hidden">
+                <button onclick="switchTab('inventory')" id="tab-inventory" class="tab-active px-6 py-4 font-bold text-gray-700 transition-colors">รายการเวชภัณฑ์</button>
+                <button onclick="switchTab('history')" id="tab-history" class="px-6 py-4 font-bold text-gray-400 hover:text-gray-700 transition-colors">ประวัติรายการ (รับเข้า - เบิกออก)</button>
+            </div>
+
+            <div id="content-inventory">
+                <div class="p-6 border-b border-gray-100 flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4 print:hidden">
+                    <h2 class="text-lg font-bold text-gray-800 flex items-center gap-2 min-w-max">
+                        รายการเวชภัณฑ์ <button onclick="loadData()" class="text-gray-400 hover:text-blue-500" title="รีเฟรชข้อมูล"><i data-lucide="refresh-cw" class="w-4 h-4"></i></button>
+                    </h2>
+                    
+                    <div class="flex flex-col sm:flex-row w-full xl:w-auto gap-3">
+                        <div class="relative w-full sm:w-64">
+                            <input type="text" id="searchInput" placeholder="ค้นหารหัส หรือ ชื่อ..." class="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all">
+                            <i data-lucide="search" class="absolute left-3 top-2.5 text-gray-400 w-5 h-5"></i>
+                        </div>
+
+                        <div class="relative w-full sm:w-36">
+                            <select id="categoryFilter" class="w-full pl-4 pr-8 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all appearance-none text-gray-700">
+                                <option value="">ทุกหมวดหมู่</option>
+                            </select>
+                            <i data-lucide="chevron-down" class="absolute right-3 top-3 text-gray-400 w-4 h-4 pointer-events-none"></i>
+                        </div>
+
+                        <div class="flex gap-2 min-w-max">
+                            <button onclick="exportToCSV()" class="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-green-50 hover:bg-green-100 text-green-700 border border-green-200 px-4 py-2 rounded-lg font-medium transition-colors" title="ดาวน์โหลดเป็นไฟล์ Excel">
+                                <i data-lucide="file-spreadsheet" class="w-4 h-4"></i><span class="hidden sm:inline">Excel</span>
+                            </button>
+                            <button onclick="window.print()" class="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 px-4 py-2 rounded-lg font-medium transition-colors" title="พิมพ์ หรือ บันทึกเป็น PDF">
+                                <i data-lucide="printer" class="w-4 h-4"></i><span class="hidden sm:inline">PDF</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto print:overflow-visible">
+                    <table class="w-full text-left border-collapse min-w-[900px]">
+                        <thead>
+                            <tr class="bg-gray-800 text-white text-sm uppercase tracking-wider">
+                                <th class="p-4 text-base font-bold text-white">รหัส</th>
+                                <th class="p-4 text-base font-bold text-white">ชื่อเวชภัณฑ์</th>
+                                <th class="p-4 text-base font-bold text-white">หมวดหมู่</th>
+                                <th class="p-4 text-base font-bold text-white text-center">จำนวนคงเหลือ</th>
+                                <th class="p-4 text-base font-bold text-white text-center">วันรับเข้า</th>
+                                <th class="p-4 text-base font-bold text-white text-center">วันหมดอายุ</th>
+                                <th class="p-4 text-base font-bold text-white text-center">หมายเหตุ</th>
+                                <th class="p-4 text-base font-bold text-white text-center print:hidden">จัดการ</th>
+                            </tr>
+                        </thead>
+                        <tbody id="inventoryTableBody" class="divide-y divide-gray-200"></tbody>
+                    </table>
+                </div>
+                <div id="paginationInventory" class="hidden justify-between items-center px-4 py-3 border-t border-gray-200 sm:px-6 print:hidden"></div>
+            </div>
+
+            <div id="content-history" class="hidden">
+                 <div class="p-6 border-b border-gray-100 flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4 print:hidden">
+                    <h2 class="text-lg font-bold text-gray-800 flex items-center gap-2 min-w-max">
+                        ประวัติการทำรายการ <button onclick="loadData()" class="text-gray-400 hover:text-blue-500" title="รีเฟรชข้อมูล"><i data-lucide="refresh-cw" class="w-4 h-4"></i></button>
+                    </h2>
+                    
+                    <div class="flex flex-col sm:flex-row w-full xl:w-auto gap-3">
+                        <div class="relative w-full sm:w-64">
+                            <input type="text" id="historySearchInput" placeholder="ค้นหารหัส หรือ ชื่อ..." class="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all">
+                            <i data-lucide="search" class="absolute left-3 top-2.5 text-gray-400 w-5 h-5"></i>
+                        </div>
+
+                        <div class="relative w-full sm:w-36">
+                            <select id="historyCategoryFilter" class="w-full pl-4 pr-8 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all appearance-none text-gray-700">
+                                <option value="">ทุกหมวดหมู่</option>
+                            </select>
+                            <i data-lucide="chevron-down" class="absolute right-3 top-3 text-gray-400 w-4 h-4 pointer-events-none"></i>
+                        </div>
+
+                        <div class="flex gap-2 min-w-max">
+                            <button onclick="exportHistoryToCSV()" class="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-green-50 hover:bg-green-100 text-green-700 border border-green-200 px-4 py-2 rounded-lg font-medium transition-colors">
+                                <i data-lucide="file-spreadsheet" class="w-4 h-4"></i><span class="hidden sm:inline">Excel</span>
+                            </button>
+                            <button onclick="window.print()" class="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 px-4 py-2 rounded-lg font-medium transition-colors">
+                                <i data-lucide="printer" class="w-4 h-4"></i><span class="hidden sm:inline">PDF</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="overflow-x-auto print:overflow-visible">
+                    <table class="w-full text-left border-collapse min-w-[800px]">
+                        <thead>
+                           <tr class="bg-gray-800 text-white text-sm uppercase tracking-wider">
+                                <th class="p-4 text-base font-bold text-white">เวลาทำรายการ</th>
+                                <th class="p-4 text-base font-bold text-white">รหัส</th>
+                                <th class="p-4 text-base font-bold text-white">ชื่อเวชภัณฑ์</th>
+                                <th class="p-4 text-base font-bold text-white text-center">ประเภท</th>
+                                <th class="p-4 text-base font-bold text-white text-center">จำนวน</th>
+                                <th class="p-4 text-base font-bold text-white text-center">จ่ายให้หน่วยงาน</th>
+                                <th class="p-4 text-base font-bold text-white text-center print:hidden">จัดการ</th>
+                            </tr>
+                        </thead>
+                        <tbody id="historyTableBody" class="divide-y divide-gray-200"></tbody>
+                    </table>
+                </div>
+                <div id="paginationHistory" class="hidden justify-between items-center px-4 py-3 border-t border-gray-200 sm:px-6 print:hidden"></div>
+            </div>
+
+        </div>
+    </div>
+
+    <div id="receiveModal" class="fixed inset-0 bg-black/50 hidden justify-center items-center p-4 z-50">
+        <div class="bg-white rounded-xl shadow-xl w-full max-w-lg">
+            <div class="bg-green-600 p-4 text-white flex justify-between items-center rounded-t-xl">
+                <h2 class="text-xl font-bold flex items-center gap-2"><i data-lucide="package-plus"></i> รับเวชภัณฑ์เข้า</h2>
+                <button onclick="closeModal('receiveModal')" class="hover:text-green-200"><i data-lucide="x"></i></button>
+            </div>
+            <form id="receiveForm" onsubmit="handleReceive(event)" class="p-6 space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">รหัส <span class="text-red-500">*</span></label>
+                        <input type="text" id="recvProductIdInput" required placeholder="ระบบสร้างให้" class="w-full bg-green-50 border border-green-200 rounded-lg p-2.5 focus:border-green-500 outline-none font-medium text-green-800">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">ชื่อเวชภัณฑ์ <span class="text-red-500">*</span></label>
+                        <input type="text" id="recvProductName" required oninput="autoFillProductDetails()" autocomplete="off" placeholder="พิมพ์ชื่อเวชภัณฑ์" class="w-full border border-gray-300 rounded-lg p-2.5 focus:border-green-500 outline-none">
+                    </div>
+                 <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">หมวดหมู่ <span class="text-red-500">*</span></label>
+                        <input type="text" id="recvCategory" required list="categoryList" autocomplete="off" placeholder="พิมพ์ หรือ เลือก" class="w-full border border-gray-300 rounded-lg p-2.5 focus:border-green-500 outline-none">
+                        <datalist id="categoryList"></datalist>
+                    </div>
+                <div class="grid grid-cols-2 gap-4">
+                   <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">จำนวนรับเข้า <span class="text-red-500">*</span></label>
+                        <input type="number" id="recvQuantity" min="1" required class="w-full border border-gray-300 rounded-lg p-2.5 focus:border-green-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">หน่วยนับ <span class="text-red-500">*</span></label>
+                        <input type="text" id="recvUnit" required list="unitList" autocomplete="off" placeholder="เช่น เม็ด แผง ขวด" class="w-full border border-gray-300 rounded-lg p-2.5 focus:border-green-500 outline-none">
+                        <datalist id="unitList"></datalist>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">วันรับเข้า <span class="text-red-500">*</span></label>
+                        <input type="text" id="recvDate" required class="w-full border border-gray-300 rounded-lg p-2.5 focus:border-green-500 outline-none bg-white">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">วันหมดอายุ <span class="text-red-500">*</span></label>
+                        <input type="text" id="recvExpiryDate" required class="w-full border border-gray-300 rounded-lg p-2.5 focus:border-green-500 outline-none bg-white">
+                    </div>
+                </div>
+                <div class="pt-4 flex justify-end gap-3">
+                    <button type="button" onclick="closeModal('receiveModal')" class="px-4 py-2 bg-gray-100 rounded-lg font-medium">ยกเลิก</button>
+                    <button type="submit" class="px-4 py-2 text-white bg-green-600 rounded-lg font-medium">บันทึกรับเข้า</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="disburseModal" class="fixed inset-0 bg-black/50 hidden justify-center items-center p-4 z-50">
+        <div class="bg-white rounded-xl shadow-xl w-full max-w-md">
+            <div class="bg-orange-500 p-4 text-white flex justify-between items-center rounded-t-xl">
+                <h2 class="text-xl font-bold flex items-center gap-2"><i data-lucide="package-minus"></i> เบิกเวชภัณฑ์ออก</h2>
+                <button onclick="closeModal('disburseModal')" class="hover:text-orange-200"><i data-lucide="x"></i></button>
+            </div>
+            <form id="disburseForm" onsubmit="handleDisburse(event)" class="p-6 space-y-4">
+                <div id="disburseError" class="hidden bg-red-100 text-red-700 p-3 rounded-lg text-sm font-bold"></div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">เลือกเวชภัณฑ์ <span class="text-red-500">*</span></label>
+                    <input type="text" id="disbProductSearch" required list="disbProductsList" oninput="updateSelectedProductTotal()" autocomplete="off" placeholder="พิมพ์ค้นหา หรือ กดเพื่อเลือก..." class="w-full border border-gray-300 rounded-lg p-2.5 focus:border-orange-500 outline-none">
+                    <datalist id="disbProductsList"></datalist>
+                    <p id="disbStockInfo" class="text-sm text-gray-500 mt-1 hidden">จำนวนคงเหลือในระบบ: <span id="disbStockAmount" class="font-bold text-gray-800">0</span></p>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">จำนวนเบิก <span class="text-red-500">*</span></label>
+                        <input type="number" id="disbQuantity" min="1" required class="w-full border border-gray-300 rounded-lg p-2.5 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">จ่ายให้หน่วยงาน <span class="text-red-500">*</span></label>
+                        <input type="text" id="disbDepartment" required placeholder="ระบุหน่วยงาน" class="w-full border border-gray-300 rounded-lg p-2.5 outline-none">
+                    </div>
+                </div>
+                <div class="pt-4 flex justify-end gap-3">
+                    <button type="button" onclick="closeModal('disburseModal')" class="px-4 py-2 bg-gray-100 rounded-lg font-medium">ยกเลิก</button>
+                    <button type="submit" class="px-4 py-2 text-white bg-orange-500 rounded-lg font-medium">บันทึกการเบิก</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="editModal" class="fixed inset-0 bg-black/50 hidden justify-center items-center p-4 z-50">
+        <div class="bg-white rounded-xl shadow-xl w-full max-w-lg">
+            <div class="bg-blue-600 p-4 text-white flex justify-between items-center rounded-t-xl">
+                <h2 class="text-xl font-bold flex items-center gap-2"><i data-lucide="edit"></i> แก้ไขข้อมูลเวชภัณฑ์</h2>
+                <button onclick="closeModal('editModal')" class="hover:text-blue-200"><i data-lucide="x"></i></button>
+            </div>
+            <form id="editForm" onsubmit="handleEdit(event)" class="p-6 space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">รหัส</label>
+                    <input type="text" id="editProductId" readonly class="w-full bg-gray-100 border border-gray-300 rounded-lg p-2.5 outline-none font-medium text-gray-600 cursor-not-allowed">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">ชื่อเวชภัณฑ์ <span class="text-red-500">*</span></label>
+                    <input type="text" id="editProductName" required autocomplete="off" class="w-full border border-gray-300 rounded-lg p-2.5 focus:border-blue-500 outline-none">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">หมวดหมู่ <span class="text-red-500">*</span></label>
+                    <input type="text" id="editCategory" required list="categoryList" autocomplete="off" class="w-full border border-gray-300 rounded-lg p-2.5 focus:border-blue-500 outline-none">
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                     <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">จำนวนคงเหลือ <span class="text-red-500">*</span></label>
+                        <input type="number" id="editQuantity" min="0" required class="w-full border border-gray-300 rounded-lg p-2.5 focus:border-blue-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">หน่วยนับ <span class="text-red-500">*</span></label>
+                        <input type="text" id="editUnit" required list="unitList" autocomplete="off" class="w-full border border-gray-300 rounded-lg p-2.5 focus:border-blue-500 outline-none">
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                   <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">วันรับเข้า <span class="text-red-500">*</span></label>
+                    <input type="text" id="editReceiveDate" required class="w-full border border-gray-300 rounded-lg p-2.5 focus:border-blue-500 outline-none bg-white">
+                </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">วันหมดอายุ <span class="text-red-500">*</span></label>
+                        <input type="text" id="editExpiryDate" required class="w-full border border-gray-300 rounded-lg p-2.5 focus:border-blue-500 outline-none bg-white">
+                    </div>
+                </div>
+                <div class="pt-4 flex justify-end gap-3">
+                    <button type="button" onclick="closeModal('editModal')" class="px-4 py-2 bg-gray-100 rounded-lg font-medium">ยกเลิก</button>
+                    <button type="submit" class="px-4 py-2 text-white bg-blue-600 rounded-lg font-medium">บันทึกข้อมูล</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="deleteConfirmModal" class="fixed inset-0 bg-black/60 hidden justify-center items-center p-4 z-[70]">
+        <div class="bg-white rounded-xl shadow-xl w-full max-w-sm">
+            <div class="bg-red-600 p-4 text-white flex justify-between items-center rounded-t-xl">
+                <h2 class="text-xl font-bold flex items-center gap-2"><i data-lucide="alert-triangle"></i> ยืนยันการลบ</h2>
+            </div>
+            <div class="p-6 text-center">
+                <p class="text-gray-700 text-lg mb-4">คุณต้องการลบเวชภัณฑ์รหัส <br><strong id="delProdId" class="text-red-600 text-xl"></strong><br> ใช่หรือไม่?</p>
+                <p class="text-sm text-gray-500 mb-6">ข้อมูลสต็อกของรายการนี้จะถูกลบออกทั้งหมด (ไม่รวมในหน้าประวัติ)</p>
+                <div class="flex justify-center gap-3">
+                    <button type="button" onclick="closeModal('deleteConfirmModal')" class="px-6 py-2 bg-gray-100 rounded-lg font-medium">ยกเลิก</button>
+                    <button type="button" onclick="executeDeleteProduct()" class="px-6 py-2 text-white bg-red-600 hover:bg-red-700 rounded-lg font-medium shadow-sm transition-all active:scale-95">ยืนยันลบ</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="editTransModal" class="fixed inset-0 bg-black/50 hidden justify-center items-center p-4 z-50">
+        <div class="bg-white rounded-xl shadow-xl w-full max-w-lg">
+            <div class="bg-blue-600 p-4 text-white flex justify-between items-center rounded-t-xl">
+                <h2 class="text-xl font-bold flex items-center gap-2"><i data-lucide="edit"></i> แก้ไขประวัติทำรายการ</h2>
+                <button onclick="closeModal('editTransModal')" class="hover:text-blue-200"><i data-lucide="x"></i></button>
+            </div>
+            <form id="editTransForm" onsubmit="handleEditTrans(event)" class="p-6 space-y-4">
+                <input type="hidden" id="editTransRow">
+                <div class="grid grid-cols-2 gap-4 bg-gray-50 p-3 rounded-lg border border-gray-200">
+                    <div><span class="block text-xs text-gray-500">รหัสเวชภัณฑ์</span><strong id="editTransProduct" class="text-sm text-gray-700"></strong></div>
+                    <div><span class="block text-xs text-gray-500">ประเภท</span><strong id="editTransType" class="text-sm text-gray-700"></strong></div>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">เวลาที่บันทึก <span class="text-red-500">*</span></label>
+                    <input type="text" id="editTransDate" required class="w-full border border-gray-300 rounded-lg p-2.5 focus:border-blue-500 outline-none bg-white">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">จำนวน <span class="text-red-500">*</span></label>
+                    <input type="number" id="editTransQty" min="1" required class="w-full border border-gray-300 rounded-lg p-2.5 focus:border-blue-500 outline-none">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">จ่ายให้หน่วยงาน <span class="text-red-500">*</span></label>
+                    <input type="text" id="editTransDept" required autocomplete="off" class="w-full border border-gray-300 rounded-lg p-2.5 focus:border-blue-500 outline-none">
+                </div>
+                <div class="pt-4 flex justify-end gap-3">
+                    <button type="button" onclick="closeModal('editTransModal')" class="px-4 py-2 bg-gray-100 rounded-lg font-medium">ยกเลิก</button>
+                    <button type="submit" class="px-4 py-2 text-white bg-blue-600 rounded-lg font-medium">บันทึกประวัติ</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="deleteTransConfirmModal" class="fixed inset-0 bg-black/60 hidden justify-center items-center p-4 z-[70]">
+        <div class="bg-white rounded-xl shadow-xl w-full max-w-sm">
+            <div class="bg-red-600 p-4 text-white flex justify-between items-center rounded-t-xl">
+                <h2 class="text-xl font-bold flex items-center gap-2"><i data-lucide="alert-triangle"></i> ยืนยันการลบประวัติ</h2>
+            </div>
+            <div class="p-6 text-center">
+                <input type="hidden" id="delTransRow">
+                <p class="text-gray-700 text-lg mb-6">คุณต้องการลบประวัติรายการนี้ใช่หรือไม่?</p>
+                <div class="flex justify-center gap-3">
+                    <button type="button" onclick="closeModal('deleteTransConfirmModal')" class="px-6 py-2 bg-gray-100 rounded-lg font-medium">ยกเลิก</button>
+                    <button type="button" onclick="executeDeleteTrans()" class="px-6 py-2 text-white bg-red-600 hover:bg-red-700 rounded-lg font-medium shadow-sm transition-all active:scale-95">ยืนยันลบ</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="alertModal" class="fixed inset-0 bg-black/50 hidden justify-center items-center p-4 z-[80]">
+        <div class="bg-white rounded-xl shadow-xl w-full max-w-sm">
+            <div class="bg-red-500 p-4 text-white flex justify-between items-center rounded-t-xl">
+                <h2 class="text-xl font-bold flex items-center gap-2"><i data-lucide="alert-circle"></i> แจ้งเตือน</h2>
+                <button onclick="closeAlert()" class="hover:text-red-200"><i data-lucide="x"></i></button>
+            </div>
+            <div class="p-6">
+                <p id="alertMessage" class="text-gray-700 whitespace-pre-line text-center"></p>
+                <div class="pt-6 flex justify-center">
+                    <button type="button" onclick="closeAlert()" class="px-6 py-2 text-white bg-red-500 hover:bg-red-600 rounded-lg font-medium shadow-sm transition-all active:scale-95">ตกลง</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/th.js"></script>
+    
+    <script>
+        let products = [];
+        let inventory = [];
+        let transactions = [];
+        let currentDeleteProductId = null;
+        let isPrinting = false; 
+
+        let currentPageInventory = 1;
+        let currentPageHistory = 1;
+        const itemsPerPage = 10;
+
+        let fpRecvDate, fpRecvExpDate, fpEditRecvDate, fpEditExpDate, fpEditTransDate;
+
+        document.getElementById('printDate').innerHTML = 'วันที่พิมพ์: ' + new Date().toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric'}) + '<br><br>';
+
+        function showLoader(text = 'กำลังโหลดข้อมูล...') {
+            document.getElementById('loaderText').innerText = text;
+            document.getElementById('loader').classList.remove('hidden');
+        }
+        function hideLoader() { document.getElementById('loader').classList.add('hidden'); }
+
+        function showAlert(msg) {
+            document.getElementById('alertMessage').innerText = msg;
+            document.getElementById('alertModal').classList.remove('hidden');
+            document.getElementById('alertModal').classList.add('flex');
+        }
+
+        function closeAlert() {
+            document.getElementById('alertModal').classList.add('hidden');
+            document.getElementById('alertModal').classList.remove('flex');
+        }
+
+        function switchTab(tab) {
+            document.getElementById('content-inventory').classList.toggle('hidden', tab !== 'inventory');
+            document.getElementById('content-history').classList.toggle('hidden', tab !== 'history');
+            
+            document.getElementById('tab-inventory').className = tab === 'inventory' ? 'tab-active px-6 py-4 font-bold text-gray-700 transition-colors' : 'px-6 py-4 font-bold text-gray-400 hover:text-gray-700 transition-colors';
+            document.getElementById('tab-history').className = tab === 'history' ? 'tab-active px-6 py-4 font-bold text-gray-700 transition-colors' : 'px-6 py-4 font-bold text-gray-400 hover:text-gray-700 transition-colors';
+        }
+
+        function loadData() {
+            showLoader('กำลังเชื่อมต่อ Google Sheets...');
+            google.script.run.withSuccessHandler(function(data) {
+                products = data.products;
+                inventory = data.inventory;
+                transactions = data.transactions;
+                
+                populateSelectOptions();
+                currentPageInventory = 1;
+                currentPageHistory = 1;
+                
+                renderTable();
+                renderHistory();
+                hideLoader();
+            }).getInitialData();
+        }
+
+        function getExpiryStatus(dateString) {
+            if (!dateString) return { status: 'safe', label: '-', color: 'text-gray-500', bg: '' };
+            const today = new Date();
+            const expiryDate = new Date(dateString);
+            const diffDays = Math.ceil((expiryDate - today) / (1000 * 60 * 60 * 24)); 
+            
+            if (diffDays < 0) return { status: 'expired', label: 'หมดอายุแล้ว', color: 'text-red-600 font-bold', bg: 'bg-red-100' };
+            if (diffDays <= 3) return { status: 'warning', label: 'ใกล้หมดอายุ', color: 'font-bold', bg: 'bg-orange-100' };
+            return { status: 'safe', label: 'ปกติ', bg: 'bg-green-100' };
+        }
+
+        function getInventorySummary(searchTerm = '', searchCategory = '') {
+            const summary = products.map(product => {
+                const productLots = inventory.filter(inv => inv.productId === product.id && inv.quantity > 0);
+                const totalQuantity = productLots.reduce((sum, item) => sum + item.quantity, 0);
+                let earliestExpiry = null;
+                if (productLots.length > 0) {
+                    earliestExpiry = productLots.reduce((earliest, current) => {
+                        if (!earliest.expiryDate) return current;
+                        if (!current.expiryDate) return earliest;
+                        return new Date(current.expiryDate) < new Date(earliest.expiryDate) ? current : earliest;
+                    }).expiryDate;
+                }
+                return { ...product, totalQuantity, earliestExpiry, lastReceiveDate: product.lastReceiveDate || '-' };
+            }).filter(item => {
+                const matchNameOrId = item.name.toLowerCase().includes(searchTerm.toLowerCase()) || item.id.toLowerCase().includes(searchTerm.toLowerCase());
+                const matchCategory = searchCategory === '' || item.category === searchCategory;
+                return matchNameOrId && matchCategory;
+            });
+
+            summary.sort((a, b) => {
+                const aQtyCritical = a.totalQuantity > 0 && a.totalQuantity < 10;
+                const bQtyCritical = b.totalQuantity > 0 && b.totalQuantity < 10;
+                const aExpAlert = ['expired', 'warning'].includes(getExpiryStatus(a.earliestExpiry).status);
+                const bExpAlert = ['expired', 'warning'].includes(getExpiryStatus(b.earliestExpiry).status);
+
+                let aScore = (aQtyCritical ? 20 : 0) + (aExpAlert ? 10 : 0);
+                let bScore = (bQtyCritical ? 20 : 0) + (bExpAlert ? 10 : 0);
+
+                if (aScore !== bScore) return bScore - aScore; 
+                return a.totalQuantity - b.totalQuantity;
+            });
+            return summary;
+        }
+
+        function renderPagination(containerId, totalItems, totalPages, type) {
+            const container = document.getElementById(containerId);
+            let currentPage = type === 'inventory' ? currentPageInventory : currentPageHistory;
+            
+            if (isPrinting || totalItems <= itemsPerPage) {
+                container.innerHTML = '';
+                container.classList.add('hidden');
+                container.classList.remove('flex');
+                return;
+            }
+
+            container.classList.remove('hidden');
+            container.classList.add('flex');
+
+            let startItem = ((currentPage - 1) * itemsPerPage) + 1;
+            let endItem = Math.min(currentPage * itemsPerPage, totalItems);
+
+            container.innerHTML = `
+                <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between w-full">
+                    <div>
+                        <p class="text-sm text-gray-700">
+                            แสดง <span class="font-medium">${startItem}</span> ถึง <span class="font-medium">${endItem}</span> จาก <span class="font-medium">${totalItems}</span> รายการ
+                        </p>
+                    </div>
+                    <div>
+                        <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                            <button onclick="changePage('${type}', ${currentPage - 1})" ${currentPage === 1 ? 'disabled class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-gray-100 text-sm font-medium text-gray-400 cursor-not-allowed"' : 'class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"'}>
+                                <span class="sr-only">ก่อนหน้า</span>
+                                <i data-lucide="chevron-left" class="h-5 w-5"></i>
+                            </button>
+                            <span class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700">
+                                หน้า ${currentPage} / ${totalPages}
+                            </span>
+                            <button onclick="changePage('${type}', ${currentPage + 1})" ${currentPage === totalPages ? 'disabled class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-gray-100 text-sm font-medium text-gray-400 cursor-not-allowed"' : 'class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"'}>
+                                <span class="sr-only">ถัดไป</span>
+                                <i data-lucide="chevron-right" class="h-5 w-5"></i>
+                            </button>
+                        </nav>
+                    </div>
+                </div>
+                <div class="flex items-center justify-between sm:hidden w-full">
+                    <button onclick="changePage('${type}', ${currentPage - 1})" ${currentPage === 1 ? 'disabled class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-400 bg-gray-100"' : 'class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"'}>
+                        ก่อนหน้า
+                    </button>
+                    <span class="text-sm text-gray-700">หน้า ${currentPage} / ${totalPages}</span>
+                    <button onclick="changePage('${type}', ${currentPage + 1})" ${currentPage === totalPages ? 'disabled class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-400 bg-gray-100"' : 'class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"'}>
+                        ถัดไป
+                    </button>
+                </div>
+            `;
+            lucide.createIcons();
+        }
+
+        function changePage(type, newPage) {
+            if (type === 'inventory') {
+                currentPageInventory = newPage;
+                renderTable();
+            } else {
+                currentPageHistory = newPage;
+                renderHistory();
+            }
+        }
+
+        function renderTable() {
+            const searchTerm = document.getElementById('searchInput').value;
+            const searchCategory = document.getElementById('categoryFilter').value;
+            const summary = getInventorySummary(searchTerm, searchCategory);
+            const tbody = document.getElementById('inventoryTableBody');
+            tbody.innerHTML = '';
+
+            const totalPages = Math.ceil(summary.length / itemsPerPage);
+            if (currentPageInventory > totalPages && totalPages > 0) currentPageInventory = totalPages;
+
+            const startIdx = (currentPageInventory - 1) * itemsPerPage;
+            const endIdx = startIdx + itemsPerPage;
+            const paginatedData = isPrinting ? summary : summary.slice(startIdx, endIdx);
+
+            if (paginatedData.length === 0) {
+                tbody.innerHTML = `<tr><td colSpan="8" class="p-8 text-center text-gray-500">ไม่พบข้อมูล</td></tr>`;
+                renderPagination('paginationInventory', 0, 1, 'inventory');
+                return;
+            }
+
+            paginatedData.forEach(item => {
+                const expiryInfo = getExpiryStatus(item.earliestExpiry);
+                
+                const fmtExpDate = item.earliestExpiry ? new Date(item.earliestExpiry).toLocaleString('th-TH', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }) : '-';
+                const fmtRecvDate = item.lastReceiveDate !== '-' ? new Date(item.lastReceiveDate).toLocaleString('th-TH', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }) : '-';
+                
+                const isCriticalQty = item.totalQuantity > 0 && item.totalQuantity < 10;
+                const isZero = item.totalQuantity === 0;
+
+                let rowClass = 'transition-colors ';
+                if (isCriticalQty || expiryInfo.status === 'expired') rowClass += 'row-blink-red';
+                else if (expiryInfo.status === 'warning') rowClass += 'row-blink-orange';
+                else if (isZero) rowClass += 'bg-gray-200 text-gray-500 opacity-70';
+                else rowClass += 'hover:bg-gray-50';
+
+                let qtyBadgeClass = '';
+                if (isCriticalQty) qtyBadgeClass = 'bg-red-50 text-red-700 shadow-sm scale-110 border border-red-200';
+                else if (isZero) qtyBadgeClass = 'bg-gray-200 text-gray-700 shadow-sm scale-110 border border-gray-500';
+                else if (expiryInfo.status === 'warning') qtyBadgeClass = 'bg-orange-50 text-orange-700 shadow-sm scale-110 border border-orange-620';
+                else qtyBadgeClass = 'bg-blue-50 text-blue-700 shadow-sm scale-110 border border-blue-200';
+                
+                let expiryHTML = item.totalQuantity > 0 ? `<span class="text-sm font-normal ${expiryInfo.color}">${fmtExpDate}</span>` : `<span class="text-sm font-normal text-black">-</span>`;
+
+                let remarks = [];
+                if (isZero) remarks.push('หมดสต็อก');
+                else if (isCriticalQty) remarks.push('ใกล้หมดสต็อก');
+                if (expiryInfo.status === 'expired') remarks.push('หมดอายุ');
+                else if (expiryInfo.status === 'warning') remarks.push('ใกล้หมดอายุ');
+
+                let remarkHTML = `<span class="text-black">-</span>`;
+                if (remarks.length > 0) {
+                    let innerHTML = remarks.map((r, i) => {
+                        let sep = i < remarks.length - 1 ? '<span class="print:hidden">, </span>' : '';
+                        return `<span class="print:block">${r}${sep}</span>`;
+                    }).join('');
+                    remarkHTML = `<span class="bg-red-50 text-red-700 px-2 py-1 rounded-md text-sm font-normal border border-red-200 inline-block text-center">${innerHTML}</span>`;
+                }
+
+                tbody.innerHTML += `
+                    <tr class="${rowClass}">
+                        <td class="p-4 text-sm font-normal text-black">${item.id}</td>
+                        <td class="p-4 text-sm font-normal text-black">${item.name}</td>
+                        <td class="p-4 text-sm font-normal text-black">${item.category}</td>
+                        <td class="p-4 text-center">
+                            <span class="inline-block px-2 py-1 rounded-full text-sm font-normal transition-transform ${qtyBadgeClass}">${item.totalQuantity} ${item.unit !== '-' ? item.unit : ''}</span>
+                        </td>
+                        <td class="p-4 text-center text-sm font-normal text-black">${fmtRecvDate}</td>
+                        <td class="p-4 text-center">${expiryHTML}</td>
+                        <td class="p-4 text-center">${remarkHTML}</td>
+                        <td class="p-4 text-center print:hidden flex justify-center gap-1">
+                            <button onclick="openEditModal('${item.id}')" class="text-blue-500 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 p-1.5 rounded-lg transition-colors" title="แก้ไขข้อมูล">
+                                <i data-lucide="edit" class="w-4 h-4"></i>
+                            </button>
+                            <button onclick="confirmDeleteProduct('${item.id}')" class="text-red-500 hover:text-red-700 bg-red-50 hover:bg-red-100 p-1.5 rounded-lg transition-colors" title="ลบข้อมูล">
+                                <i data-lucide="trash-2" class="w-4 h-4"></i>
+                            </button>
+                        </td>
+                    </tr>`;
+            });
+            lucide.createIcons();
+            renderPagination('paginationInventory', summary.length, totalPages, 'inventory');
+        }
+
+        function renderHistory() {
+            const searchTerm = document.getElementById('historySearchInput').value.toLowerCase();
+            const searchCategory = document.getElementById('historyCategoryFilter').value;
+            const tbody = document.getElementById('historyTableBody');
+            tbody.innerHTML = '';
+            
+            let filteredTrans = transactions.filter(t => {
+                const pd = products.find(p => p.id === t.pId);
+                const pdName = pd ? pd.name.toLowerCase() : '';
+                const pdCat = pd ? pd.category : '';
+                
+                const matchSearch = t.pId.toLowerCase().includes(searchTerm) || pdName.includes(searchTerm);
+                const matchCat = searchCategory === '' || pdCat === searchCategory;
+                return matchSearch && matchCat;
+            });
+            
+            const totalPages = Math.ceil(filteredTrans.length / itemsPerPage);
+            if (currentPageHistory > totalPages && totalPages > 0) currentPageHistory = totalPages;
+
+            const startIdx = (currentPageHistory - 1) * itemsPerPage;
+            const endIdx = startIdx + itemsPerPage;
+            const paginatedTrans = isPrinting ? filteredTrans : filteredTrans.slice(startIdx, endIdx);
+
+            if(paginatedTrans.length === 0) {
+                tbody.innerHTML = `<tr><td colSpan="7" class="p-8 text-center text-gray-500">ไม่พบประวัติทำรายการที่ค้นหา</td></tr>`;
+                renderPagination('paginationHistory', 0, 1, 'history');
+                return;
+            }
+            
+            paginatedTrans.forEach(t => {
+                const pd = products.find(p => p.id === t.pId);
+                const pdName = pd ? pd.name : 'ไม่ทราบชื่อ';
+                
+                let safeDept = t.dept.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+                
+                let typeBadge = t.type === 'รับเข้า' 
+                     ? '<span class="whitespace-nowrap bg-green-100 text-green-700 px-2 py-1 rounded-md text-sm font-normal border border-green-200">รับเข้า</span>' 
+                     : '<span class="whitespace-nowrap bg-orange-100 text-orange-700 px-2 py-1 rounded-md text-sm font-normal border border-orange-200">เบิกออก</span>';
+                
+                tbody.innerHTML += `
+                    <tr class="hover:bg-gray-50 transition-colors">
+                        <td class="p-4 text-sm font-normal text-black">${t.date}</td>
+                        <td class="p-4 text-sm font-normal text-black">${t.pId}</td>
+                        <td class="p-4 text-sm font-normal text-black">${pdName}</td>
+                        <td class="p-4 text-center">${typeBadge}</td>
+                        <td class="p-4 text-center text-sm font-normal text-black">${t.qty}</td>
+                        <td class="p-4 text-center text-sm font-normal text-black">${t.dept}</td>
+                        <td class="p-4 text-center print:hidden flex justify-center gap-1">
+                            <button onclick="openEditTransModal('${t.row}', '${t.pId}', '${t.type}', '${t.qty}', '${safeDept}', '${t.rawDate}')" class="text-blue-500 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 p-1.5 rounded-lg transition-colors" title="แก้ไขประวัติ">
+                                <i data-lucide="edit" class="w-4 h-4"></i>
+                            </button>
+                            <button onclick="confirmDeleteTrans('${t.row}')" class="text-red-500 hover:text-red-700 bg-red-50 hover:bg-red-100 p-1.5 rounded-lg transition-colors" title="ลบประวัติ">
+                                <i data-lucide="trash-2" class="w-4 h-4"></i>
+                            </button>
+                        </td>
+                    </tr>`;
+            });
+            lucide.createIcons();
+            renderPagination('paginationHistory', filteredTrans.length, totalPages, 'history');
+        }
+
+        window.addEventListener('beforeprint', () => {
+            isPrinting = true;
+            renderTable();
+            renderHistory();
+        });
+
+        window.addEventListener('afterprint', () => {
+            isPrinting = false;
+            renderTable();
+            renderHistory();
+        });
+
+        function exportToCSV() {
+            const searchTerm = document.getElementById('searchInput').value;
+            const searchCategory = document.getElementById('categoryFilter').value;
+            const summary = getInventorySummary(searchTerm, searchCategory);
+            const headers = ['รหัส', 'ชื่อเวชภัณฑ์', 'หมวดหมู่', 'จำนวนคงเหลือ', 'หน่วยนับ', 'วันรับเข้า', 'วันหมดอายุ', 'หมายเหตุ'];
+            const rows = summary.map(item => {
+                const expiryInfo = getExpiryStatus(item.earliestExpiry);
+                const fmtExpDate = item.earliestExpiry ? new Date(item.earliestExpiry).toLocaleString('th-TH', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }) : '-';
+                const fmtRecvDate = item.lastReceiveDate !== '-' ? new Date(item.lastReceiveDate).toLocaleString('th-TH', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }) : '-';
+                const isCriticalQty = item.totalQuantity > 0 && item.totalQuantity < 10;
+                const isZero = item.totalQuantity === 0;
+                let remarks = [];
+                if (isZero) remarks.push('หมดสต็อก');
+                else if (isCriticalQty) remarks.push('ใกล้หมดสต็อก');
+                if (expiryInfo.status === 'expired') remarks.push('หมดอายุ');
+                else if (expiryInfo.status === 'warning') remarks.push('ใกล้หมดอายุ');
+                let remarkText = remarks.length > 0 ? remarks.join(' / ') : '-';
+                return [`"${item.id}"`, `"${item.name}"`, `"${item.category}"`, item.totalQuantity, `"${item.unit !== '-' ? item.unit : ''}"`, `"${fmtRecvDate}"`, `"${fmtExpDate}"`, `"${remarkText}"`];
+            });
+            const csvContent = "\uFEFF" + [headers.join(","), ...rows.map(e => e.join(","))].join("\n");
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.download = `inventory_report_${new Date().toISOString().split('T')[0]}.csv`;
+            link.click();
+        }
+
+        function exportHistoryToCSV() {
+            const searchTerm = document.getElementById('historySearchInput').value.toLowerCase();
+            const searchCategory = document.getElementById('historyCategoryFilter').value;
+            let filteredTrans = transactions.filter(t => {
+                const pd = products.find(p => p.id === t.pId);
+                const pdName = pd ? pd.name.toLowerCase() : '';
+                const pdCat = pd ? pd.category : '';
+                const matchSearch = t.pId.toLowerCase().includes(searchTerm) || pdName.includes(searchTerm);
+                const matchCat = searchCategory === '' || pdCat === searchCategory;
+                return matchSearch && matchCat;
+            });
+            const headers = ['เวลาทำรายการ', 'รหัส', 'ชื่อเวชภัณฑ์', 'หมวดหมู่', 'ประเภท', 'จำนวน', 'จ่ายให้หน่วยงาน'];
+            const rows = filteredTrans.map(t => {
+                const pd = products.find(p => p.id === t.pId);
+                const pdName = pd ? pd.name : 'ไม่ทราบชื่อ';
+                const pdCat = pd ? pd.category : '-';
+                return [`"${t.date}"`, `"${t.pId}"`, `"${pdName}"`, `"${pdCat}"`, `"${t.type}"`, t.qty, `"${t.dept}"`];
+            });
+            const csvContent = "\uFEFF" + [headers.join(","), ...rows.map(e => e.join(","))].join("\n");
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.download = `transaction_history_${new Date().toISOString().split('T')[0]}.csv`;
+            link.click();
+        }
+
+        function generateNewProductId() {
+            if (products.length === 0) return 'P001';
+            let maxId = 0;
+            products.forEach(p => {
+                let match = p.id.match(/^P(\d+)$/i);
+                if (match) {
+                    let num = parseInt(match[1], 10);
+                    if (num > maxId) maxId = num;
+                }
+            });
+            let nextId = maxId + 1;
+            return 'P' + (nextId.toString().padStart(3, '0'));
+        }
+
+        function openModal(id) {
+            document.getElementById(id).classList.remove('hidden'); 
+            document.getElementById(id).classList.add('flex');
+            
+            if(id === 'disburseModal') { 
+                document.getElementById('disburseForm').reset(); 
+                document.getElementById('disbStockInfo').classList.add('hidden'); 
+            } else if(id === 'receiveModal') { 
+                document.getElementById('receiveForm').reset();
+                fpRecvDate.setDate(new Date());
+                fpRecvExpDate.clear();
+                document.getElementById('recvProductIdInput').value = generateNewProductId();
+            }
+        }
+        function closeModal(id) { 
+            document.getElementById(id).classList.add('hidden'); 
+            document.getElementById(id).classList.remove('flex'); 
+        }
+
+        function openEditModal(productId) {
+            const product = products.find(p => p.id === productId);
+            if (!product) return;
+            
+            const summaryData = getInventorySummary(product.name, product.category).find(s => s.id === productId);
+            document.getElementById('editProductId').value = product.id;
+            document.getElementById('editProductName').value = product.name;
+            document.getElementById('editCategory').value = product.category;
+            document.getElementById('editUnit').value = product.unit !== '-' ? product.unit : '';
+            document.getElementById('editQuantity').value = summaryData ? summaryData.totalQuantity : 0;
+
+            const inventoryLots = inventory.filter(inv => inv.productId === productId);
+            let recvDateStr = '';
+            let expDateStr = '';
+            
+            if (inventoryLots.length > 0) {
+                const targetLot = inventoryLots.reduce((earliest, current) => {
+                    if (!earliest.expiryDate) return current;
+                    if (!current.expiryDate) return earliest;
+                    const dEarliest = new Date(earliest.expiryDate);
+                    const dCurrent = new Date(current.expiryDate);
+                    if (isNaN(dEarliest)) return current;
+                    if (isNaN(dCurrent)) return earliest;
+                    return dCurrent < dEarliest ? current : earliest;
+                });
+                recvDateStr = targetLot.receiveDate || '';
+                expDateStr = targetLot.expiryDate || '';
+            }
+
+            if (recvDateStr) fpEditRecvDate.setDate(recvDateStr);
+            else fpEditRecvDate.clear();
+            
+            if (expDateStr) fpEditExpDate.setDate(expDateStr);
+            else fpEditExpDate.clear();
+
+            openModal('editModal');
+        }
+
+        function handleEdit(e) {
+            e.preventDefault();
+            const data = {
+                productId: document.getElementById('editProductId').value,
+                productName: document.getElementById('editProductName').value.trim(),
+                category: document.getElementById('editCategory').value.trim(),
+                unit: document.getElementById('editUnit').value.trim(),
+                quantity: document.getElementById('editQuantity').value,         
+                receiveDate: document.getElementById('editReceiveDate').value,   
+                expiryDate: document.getElementById('editExpiryDate').value      
+            };
+            showLoader('กำลังบันทึกการแก้ไข...');
+            google.script.run.withSuccessHandler(function() { closeModal('editModal'); loadData(); }).editProduct(data);
+        }
+
+        function confirmDeleteProduct(id) {
+            currentDeleteProductId = id;
+            document.getElementById('delProdId').innerText = id;
+            openModal('deleteConfirmModal');
+        }
+
+        function executeDeleteProduct() {
+            if(!currentDeleteProductId) return;
+            showLoader('กำลังลบข้อมูลเวชภัณฑ์...');
+            google.script.run.withSuccessHandler(function() { 
+                closeModal('deleteConfirmModal'); 
+                loadData(); 
+            }).deleteProduct(currentDeleteProductId);
+        }
+
+        function openEditTransModal(row, pId, type, qty, dept, rawDate) {
+            document.getElementById('editTransRow').value = row;
+            document.getElementById('editTransProduct').innerText = pId;
+            document.getElementById('editTransType').innerText = type;
+            
+            if (rawDate) fpEditTransDate.setDate(rawDate);
+            else fpEditTransDate.clear();
+            
+            document.getElementById('editTransQty').value = qty;
+            document.getElementById('editTransDept').value = dept;
+            
+            openModal('editTransModal');
+        }
+
+        function handleEditTrans(e) {
+            e.preventDefault();
+            const data = {
+                row: document.getElementById('editTransRow').value,
+                date: document.getElementById('editTransDate').value,
+                qty: document.getElementById('editTransQty').value,
+                dept: document.getElementById('editTransDept').value || '-'
+            };
+            showLoader('กำลังแก้ไขประวัติ...');
+            google.script.run.withSuccessHandler(function(res) { 
+                if (res.success) {
+                    closeModal('editTransModal'); 
+                    loadData(); 
+                } else {
+                    hideLoader();
+                    closeModal('editTransModal');
+                    showAlert(res.message);
+                }
+            }).editTransactionData(data);
+        }
+
+        function confirmDeleteTrans(row) {
+            document.getElementById('delTransRow').value = row;
+            openModal('deleteTransConfirmModal');
+        }
+
+        function executeDeleteTrans() {
+            const row = document.getElementById('delTransRow').value;
+            showLoader('กำลังลบประวัติ...');
+            google.script.run.withSuccessHandler(function(res) { 
+                if (res.success) {
+                    closeModal('deleteTransConfirmModal'); 
+                    loadData(); 
+                } else {
+                    hideLoader();
+                    closeModal('deleteTransConfirmModal');
+                    showAlert(res.message);
+                }
+            }).deleteTransactionData(row);
+        }
+
+        function populateSelectOptions() {
+            let datalistDisbHTML = '';
+            products.forEach(p => { datalistDisbHTML += `<option value="[${p.id}] ${p.name}">`; });
+            document.getElementById('disbProductsList').innerHTML = datalistDisbHTML;
+
+            let uniqueCategories = [...new Set(products.map(p => p.category).filter(c => c && c !== '-'))];
+            let filterCatHTML = '<option value="">ทุกหมวดหมู่</option>';
+            uniqueCategories.forEach(c => { filterCatHTML += `<option value="${c}">${c}</option>`; });
+            document.getElementById('categoryFilter').innerHTML = filterCatHTML;
+            document.getElementById('historyCategoryFilter').innerHTML = filterCatHTML; 
+
+            let datalistCatHTML = '';
+            uniqueCategories.forEach(c => { datalistCatHTML += `<option value="${c}">`; });
+            document.getElementById('categoryList').innerHTML = datalistCatHTML;
+
+            let uniqueUnits = [...new Set(products.map(p => p.unit).filter(u => u && u !== '-'))];
+            let datalistUnitHTML = '';
+            uniqueUnits.forEach(u => { datalistUnitHTML += `<option value="${u}">`; });
+            document.getElementById('unitList').innerHTML = datalistUnitHTML;
+        }
+
+        function getDisbProductId() {
+            const val = document.getElementById('disbProductSearch').value;
+            const match = val.match(/^\[(.*?)\]/);
+            return match ? match[1] : null;
+        }
+
+        function autoFillProductDetails() {
+            const typedName = document.getElementById('recvProductName').value;
+            const product = products.find(p => p.name.toLowerCase() === typedName.toLowerCase());
+            if (product) {
+                document.getElementById('recvProductIdInput').value = product.id;
+                document.getElementById('recvCategory').value = product.category;
+                document.getElementById('recvUnit').value = product.unit !== '-' ? product.unit : '';
+            } else {
+                const currentIdInput = document.getElementById('recvProductIdInput').value;
+                if(products.find(p => p.id === currentIdInput)) document.getElementById('recvProductIdInput').value = generateNewProductId();
+            }
+        }
+
+        function updateSelectedProductTotal() {
+            const productId = getDisbProductId();
+            if (!productId) { document.getElementById('disbStockInfo').classList.add('hidden'); return; }
+            const total = inventory.filter(inv => inv.productId === productId).reduce((sum, item) => sum + item.quantity, 0);
+            document.getElementById('disbStockAmount').innerText = total; 
+            document.getElementById('disbStockInfo').classList.remove('hidden');
+        }
+
+        function handleReceive(e) {
+            e.preventDefault();
+            const inputId = document.getElementById('recvProductIdInput').value.trim();
+            const inputName = document.getElementById('recvProductName').value.trim();
+            const existingById = products.find(p => p.id.toLowerCase() === inputId.toLowerCase());
+            if (existingById && existingById.name.toLowerCase() !== inputName.toLowerCase()) {
+                showAlert('รหัส "' + inputId + '" ซ้ำกับสินค้าที่มีอยู่แล้วคือ\n"' + existingById.name + '"\n\nกรุณาใช้รหัสอื่นสำหรับสินค้าใหม่');
+                return;
+            }
+            const data = {
+                productId: inputId, productName: inputName, category: document.getElementById('recvCategory').value,
+                unit: document.getElementById('recvUnit').value, quantity: document.getElementById('recvQuantity').value,
+                receiveDate: document.getElementById('recvDate').value, expiryDate: document.getElementById('recvExpiryDate').value
+            };
+            showLoader('กำลังบันทึกรับเข้า...');
+            google.script.run.withSuccessHandler(function() { closeModal('receiveModal'); loadData(); }).receiveItem(data);
+        }
+
+        function handleDisburse(e) {
+            e.preventDefault();
+            document.getElementById('disburseError').classList.add('hidden');
+            const productId = getDisbProductId();
+            if (!productId) {
+                document.getElementById('disburseError').innerText = 'กรุณาเลือกเวชภัณฑ์จากรายการให้ถูกต้อง';
+                document.getElementById('disburseError').classList.remove('hidden');
+                return;
+            }
+            const data = { productId: productId, quantity: document.getElementById('disbQuantity').value, department: document.getElementById('disbDepartment').value };
+            showLoader('กำลังเบิกออก...');
+            google.script.run.withSuccessHandler(function(res) {
+                if(res.success) { closeModal('disburseModal'); loadData(); }
+                else { hideLoader(); document.getElementById('disburseError').innerText = res.message; document.getElementById('disburseError').classList.remove('hidden'); }
+            }).disburseItem(data);
+        }
+
+        function initFlatpickr() {
+            flatpickr.localize(flatpickr.l10ns.th);
+            
+            const formatThaiDate = (date, formatStr) => {
+                let str = flatpickr.formatDate(date, formatStr);
+                const yearCE = date.getFullYear();
+                const yearBE = yearCE + 543;
+                return str.replace(yearCE.toString(), yearBE.toString());
+            };
+
+            const updateYearBE = (instance) => {
+                if (instance.currentYearElement) {
+                    instance.currentYearElement.value = instance.currentYear + 543;
+                }
+            };
+
+            const commonConfig = {
+                locale: "th",
+                altInput: true,
+                enableTime: true,
+                time_24hr: true,
+                altFormat: "d/m/Y H:i",
+                dateFormat: "Y-m-d\\TH:i",
+                disableMobile: true,
+                formatDate: formatThaiDate,
+                onReady: function(a, b, instance) { 
+                    updateYearBE(instance);
+                    if(instance.currentYearElement) instance.currentYearElement.setAttribute("readonly", "readonly");
+                },
+                onYearChange: function(a, b, instance) { updateYearBE(instance); },
+                onMonthChange: function(a, b, instance) { updateYearBE(instance); },
+                onValueUpdate: function(a, b, instance) { updateYearBE(instance); }
+            };
+
+            fpRecvDate = flatpickr("#recvDate", commonConfig);
+            fpRecvExpDate = flatpickr("#recvExpiryDate", commonConfig);
+            fpEditRecvDate = flatpickr("#editReceiveDate", commonConfig);
+            fpEditExpDate = flatpickr("#editExpiryDate", commonConfig);
+            fpEditTransDate = flatpickr("#editTransDate", commonConfig);
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+            initFlatpickr(); 
+            
+            document.getElementById('searchInput').addEventListener('input', () => { currentPageInventory = 1; renderTable(); });
+            document.getElementById('categoryFilter').addEventListener('change', () => { currentPageInventory = 1; renderTable(); });
+            document.getElementById('historySearchInput').addEventListener('input', () => { currentPageHistory = 1; renderHistory(); });
+            document.getElementById('historyCategoryFilter').addEventListener('change', () => { currentPageHistory = 1; renderHistory(); });
+            
+            loadData(); 
+        });
+    </script>
+</body>
+</html>
