@@ -81,7 +81,7 @@
                     
                     <div class="flex flex-col sm:flex-row w-full xl:w-auto gap-3">
                         <div class="relative w-full sm:w-64">
-                            <input type="text" id="searchInput" placeholder="ค้นหารหัส หรือ ชื่อ..." class="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all">
+                            <input type="text" id="searchInput" placeholder="ค้นหารหัส, PR, หรือ ชื่อ..." class="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all">
                             <i data-lucide="search" class="absolute left-3 top-2.5 text-gray-400 w-5 h-5"></i>
                         </div>
 
@@ -106,13 +106,28 @@
                 <div class="overflow-x-auto print:overflow-visible">
                     <table class="w-full text-left border-collapse min-w-[900px]">
                         <thead>
-                            <tr class="bg-gray-800 text-white text-sm uppercase tracking-wider">
-                                <th class="p-4 text-base font-bold text-white">รหัส</th>
-                                <th class="p-4 text-base font-bold text-white">ชื่อเวชภัณฑ์</th>
-                                <th class="p-4 text-base font-bold text-white">หมวดหมู่</th>
-                                <th class="p-4 text-base font-bold text-white text-center">จำนวนคงเหลือ</th>
-                                <th class="p-4 text-base font-bold text-white text-center">วันรับเข้า</th>
-                                <th class="p-4 text-base font-bold text-white text-center">วันหมดอายุ</th>
+                            <tr class="bg-gray-800 text-white text-sm uppercase tracking-wider select-none">
+                                <th class="p-4 text-base font-bold cursor-pointer hover:bg-gray-700 transition-colors" onclick="handleSort('inventory', 'id')">
+                                    <div class="flex items-center gap-1">รหัส <span class="sort-icon-wrapper" data-col="id"><i data-lucide="chevrons-up-down" class="w-4 h-4 text-gray-400"></i></span></div>
+                                </th>
+                                <th class="p-4 text-base font-bold cursor-pointer hover:bg-gray-700 transition-colors" onclick="handleSort('inventory', 'pr')">
+                                    <div class="flex items-center gap-1">เลขที่ PR <span class="sort-icon-wrapper" data-col="pr"><i data-lucide="chevrons-up-down" class="w-4 h-4 text-gray-400"></i></span></div>
+                                </th>
+                                <th class="p-4 text-base font-bold cursor-pointer hover:bg-gray-700 transition-colors" onclick="handleSort('inventory', 'name')">
+                                    <div class="flex items-center gap-1">ชื่อเวชภัณฑ์ <span class="sort-icon-wrapper" data-col="name"><i data-lucide="chevrons-up-down" class="w-4 h-4 text-gray-400"></i></span></div>
+                                </th>
+                                <th class="p-4 text-base font-bold cursor-pointer hover:bg-gray-700 transition-colors" onclick="handleSort('inventory', 'category')">
+                                    <div class="flex items-center gap-1">หมวดหมู่ <span class="sort-icon-wrapper" data-col="category"><i data-lucide="chevrons-up-down" class="w-4 h-4 text-gray-400"></i></span></div>
+                                </th>
+                                <th class="p-4 text-base font-bold text-center cursor-pointer hover:bg-gray-700 transition-colors" onclick="handleSort('inventory', 'totalQuantity')">
+                                    <div class="flex items-center justify-center gap-1">จำนวนคงเหลือ <span class="sort-icon-wrapper" data-col="totalQuantity"><i data-lucide="chevrons-up-down" class="w-4 h-4 text-gray-400"></i></span></div>
+                                </th>
+                                <th class="p-4 text-base font-bold text-center cursor-pointer hover:bg-gray-700 transition-colors" onclick="handleSort('inventory', 'lastReceiveDate')">
+                                    <div class="flex items-center justify-center gap-1">วันรับเข้า <span class="sort-icon-wrapper" data-col="lastReceiveDate"><i data-lucide="chevrons-up-down" class="w-4 h-4 text-gray-400"></i></span></div>
+                                </th>
+                                <th class="p-4 text-base font-bold text-center cursor-pointer hover:bg-gray-700 transition-colors" onclick="handleSort('inventory', 'earliestExpiry')">
+                                    <div class="flex items-center justify-center gap-1">วันหมดอายุ <span class="sort-icon-wrapper" data-col="earliestExpiry"><i data-lucide="chevrons-up-down" class="w-4 h-4 text-gray-400"></i></span></div>
+                                </th>
                                 <th class="p-4 text-base font-bold text-white text-center">หมายเหตุ</th>
                                 <th class="p-4 text-base font-bold text-white text-center print:hidden">จัดการ</th>
                             </tr>
@@ -131,7 +146,7 @@
                     
                     <div class="flex flex-col sm:flex-row w-full xl:w-auto gap-3">
                         <div class="relative w-full sm:w-64">
-                            <input type="text" id="historySearchInput" placeholder="ค้นหารหัส หรือ ชื่อ..." class="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all">
+                            <input type="text" id="historySearchInput" placeholder="ค้นหารหัส, PR, หรือ ชื่อ..." class="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all">
                             <i data-lucide="search" class="absolute left-3 top-2.5 text-gray-400 w-5 h-5"></i>
                         </div>
 
@@ -153,15 +168,30 @@
                     </div>
                 </div>
                 <div class="overflow-x-auto print:overflow-visible">
-                    <table class="w-full text-left border-collapse min-w-[800px]">
+                    <table class="w-full text-left border-collapse min-w-[900px]">
                         <thead>
-                           <tr class="bg-gray-800 text-white text-sm uppercase tracking-wider">
-                                <th class="p-4 text-base font-bold text-white">เวลาทำรายการ</th>
-                                <th class="p-4 text-base font-bold text-white">รหัส</th>
-                                <th class="p-4 text-base font-bold text-white">ชื่อเวชภัณฑ์</th>
-                                <th class="p-4 text-base font-bold text-white text-center">ประเภท</th>
-                                <th class="p-4 text-base font-bold text-white text-center">จำนวน</th>
-                                <th class="p-4 text-base font-bold text-white text-center">จ่ายให้หน่วยงาน</th>
+                           <tr class="bg-gray-800 text-white text-sm uppercase tracking-wider select-none">
+                                <th class="p-4 text-base font-bold cursor-pointer hover:bg-gray-700 transition-colors" onclick="handleSort('history', 'date')">
+                                    <div class="flex items-center gap-1">เวลาทำรายการ <span class="sort-icon-wrapper" data-col="date"><i data-lucide="chevrons-up-down" class="w-4 h-4 text-gray-400"></i></span></div>
+                                </th>
+                                <th class="p-4 text-base font-bold cursor-pointer hover:bg-gray-700 transition-colors" onclick="handleSort('history', 'pId')">
+                                    <div class="flex items-center gap-1">รหัส <span class="sort-icon-wrapper" data-col="pId"><i data-lucide="chevrons-up-down" class="w-4 h-4 text-gray-400"></i></span></div>
+                                </th>
+                                <th class="p-4 text-base font-bold cursor-pointer hover:bg-gray-700 transition-colors" onclick="handleSort('history', 'name')">
+                                    <div class="flex items-center gap-1">ชื่อเวชภัณฑ์ <span class="sort-icon-wrapper" data-col="name"><i data-lucide="chevrons-up-down" class="w-4 h-4 text-gray-400"></i></span></div>
+                                </th>
+                                <th class="p-4 text-base font-bold text-center cursor-pointer hover:bg-gray-700 transition-colors" onclick="handleSort('history', 'type')">
+                                    <div class="flex items-center justify-center gap-1">ประเภท <span class="sort-icon-wrapper" data-col="type"><i data-lucide="chevrons-up-down" class="w-4 h-4 text-gray-400"></i></span></div>
+                                </th>
+                                <th class="p-4 text-base font-bold text-center cursor-pointer hover:bg-gray-700 transition-colors" onclick="handleSort('history', 'qty')">
+                                    <div class="flex items-center justify-center gap-1">จำนวน <span class="sort-icon-wrapper" data-col="qty"><i data-lucide="chevrons-up-down" class="w-4 h-4 text-gray-400"></i></span></div>
+                                </th>
+                                <th class="p-4 text-base font-bold text-center cursor-pointer hover:bg-gray-700 transition-colors" onclick="handleSort('history', 'pr')">
+                                    <div class="flex items-center justify-center gap-1">เลขที่ PR <span class="sort-icon-wrapper" data-col="pr"><i data-lucide="chevrons-up-down" class="w-4 h-4 text-gray-400"></i></span></div>
+                                </th>
+                                <th class="p-4 text-base font-bold text-center cursor-pointer hover:bg-gray-700 transition-colors" onclick="handleSort('history', 'dept')">
+                                    <div class="flex items-center justify-center gap-1">จ่ายให้หน่วยงาน <span class="sort-icon-wrapper" data-col="dept"><i data-lucide="chevrons-up-down" class="w-4 h-4 text-gray-400"></i></span></div>
+                                </th>
                                 <th class="p-4 text-base font-bold text-white text-center print:hidden">จัดการ</th>
                             </tr>
                         </thead>
@@ -181,19 +211,26 @@
                 <button onclick="closeModal('receiveModal')" class="hover:text-green-200"><i data-lucide="x"></i></button>
             </div>
             <form id="receiveForm" onsubmit="handleReceive(event)" class="p-6 space-y-4">
+                <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">รหัส <span class="text-red-500">*</span></label>
                         <input type="text" id="recvProductIdInput" required placeholder="ระบบสร้างให้" class="w-full bg-green-50 border border-green-200 rounded-lg p-2.5 focus:border-green-500 outline-none font-medium text-green-800">
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">ชื่อเวชภัณฑ์ <span class="text-red-500">*</span></label>
-                        <input type="text" id="recvProductName" required oninput="autoFillProductDetails()" autocomplete="off" placeholder="พิมพ์ชื่อเวชภัณฑ์" class="w-full border border-gray-300 rounded-lg p-2.5 focus:border-green-500 outline-none">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">เลขที่ PR</label>
+                        <input type="text" id="recvPrNumber" list="prListGlobal" autocomplete="off" placeholder="ค้นหาหรือพิมพ์เลข PR" class="w-full border border-gray-300 rounded-lg p-2.5 focus:border-green-500 outline-none">
+                        <datalist id="prListGlobal"></datalist>
                     </div>
-                 <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">หมวดหมู่ <span class="text-red-500">*</span></label>
-                        <input type="text" id="recvCategory" required list="categoryList" autocomplete="off" placeholder="พิมพ์ หรือ เลือก" class="w-full border border-gray-300 rounded-lg p-2.5 focus:border-green-500 outline-none">
-                        <datalist id="categoryList"></datalist>
-                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">ชื่อเวชภัณฑ์ <span class="text-red-500">*</span></label>
+                    <input type="text" id="recvProductName" required oninput="autoFillProductDetails()" autocomplete="off" placeholder="พิมพ์ชื่อเวชภัณฑ์" class="w-full border border-gray-300 rounded-lg p-2.5 focus:border-green-500 outline-none">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">หมวดหมู่ <span class="text-red-500">*</span></label>
+                    <input type="text" id="recvCategory" required list="categoryList" autocomplete="off" placeholder="พิมพ์ หรือ เลือก" class="w-full border border-gray-300 rounded-lg p-2.5 focus:border-green-500 outline-none">
+                    <datalist id="categoryList"></datalist>
+                </div>
                 <div class="grid grid-cols-2 gap-4">
                    <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">จำนวนรับเข้า <span class="text-red-500">*</span></label>
@@ -204,6 +241,16 @@
                         <input type="text" id="recvUnit" required list="unitList" autocomplete="off" placeholder="เช่น เม็ด แผง ขวด" class="w-full border border-gray-300 rounded-lg p-2.5 focus:border-green-500 outline-none">
                         <datalist id="unitList"></datalist>
                     </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4 bg-orange-50 p-3 rounded-lg border border-orange-100">
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">แจ้งเตือนสต็อกต่ำกว่า <span class="text-xs text-gray-500">(ชิ้น)</span></label>
+                    <input type="number" id="recvMinStock" min="0" class="w-full border border-gray-300 rounded-lg p-2.5 focus:border-green-500 outline-none" placeholder="0">
+                  </div>
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">แจ้งเตือนก่อนหมดอายุ <span class="text-xs text-gray-500">(วัน)</span></label>
+                    <input type="number" id="recvExpiryAlertDays" min="0" class="w-full border border-gray-300 rounded-lg p-2.5 focus:border-green-500 outline-none" placeholder="0">
+                  </div>
                 </div>
                 <div class="grid grid-cols-2 gap-4">
                     <div>
@@ -232,10 +279,19 @@
             <form id="disburseForm" onsubmit="handleDisburse(event)" class="p-6 space-y-4">
                 <div id="disburseError" class="hidden bg-red-100 text-red-700 p-3 rounded-lg text-sm font-bold"></div>
                 <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">วันที่/เวลาเบิก <span class="text-red-500">*</span></label>
+                    <input type="text" id="disbDate" required class="w-full border border-gray-300 rounded-lg p-2.5 outline-none bg-white">
+                </div>
+                <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">เลือกเวชภัณฑ์ <span class="text-red-500">*</span></label>
                     <input type="text" id="disbProductSearch" required list="disbProductsList" oninput="updateSelectedProductTotal()" autocomplete="off" placeholder="พิมพ์ค้นหา หรือ กดเพื่อเลือก..." class="w-full border border-gray-300 rounded-lg p-2.5 focus:border-orange-500 outline-none">
                     <datalist id="disbProductsList"></datalist>
-                    <p id="disbStockInfo" class="text-sm text-gray-500 mt-1 hidden">จำนวนคงเหลือในระบบ: <span id="disbStockAmount" class="font-bold text-gray-800">0</span></p>
+                    <p id="disbStockInfo" class="text-sm text-gray-500 mt-1 hidden">จำนวนคงเหลือรวม: <span id="disbStockAmount" class="font-bold text-gray-800">0</span></p>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">เลขที่ PR <span class="text-xs text-gray-500">(เว้นว่างเพื่อตัดสต็อกแบบอัตโนมัติ FIFO)</span></label>
+                    <input type="text" id="disbPrNumber" list="disbPrList" autocomplete="off" placeholder="ค้นหาหรือเลือก PR ที่มีสต็อก" class="w-full border border-gray-300 rounded-lg p-2.5 outline-none">
+                    <datalist id="disbPrList"></datalist>
                 </div>
                 <div class="grid grid-cols-2 gap-4">
                     <div>
@@ -258,13 +314,20 @@
     <div id="editModal" class="fixed inset-0 bg-black/50 hidden justify-center items-center p-4 z-50">
         <div class="bg-white rounded-xl shadow-xl w-full max-w-lg">
             <div class="bg-blue-600 p-4 text-white flex justify-between items-center rounded-t-xl">
-                <h2 class="text-xl font-bold flex items-center gap-2"><i data-lucide="edit"></i> แก้ไขข้อมูลเวชภัณฑ์</h2>
+                <h2 class="text-xl font-bold flex items-center gap-2"><i data-lucide="edit"></i> แก้ไขข้อมูลเวชภัณฑ์/PR</h2>
                 <button onclick="closeModal('editModal')" class="hover:text-blue-200"><i data-lucide="x"></i></button>
             </div>
             <form id="editForm" onsubmit="handleEdit(event)" class="p-6 space-y-4">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">รหัส</label>
-                    <input type="text" id="editProductId" readonly class="w-full bg-gray-100 border border-gray-300 rounded-lg p-2.5 outline-none font-medium text-gray-600 cursor-not-allowed">
+                <input type="hidden" id="editOriginalPr">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">รหัส</label>
+                        <input type="text" id="editProductId" readonly class="w-full bg-gray-100 border border-gray-300 rounded-lg p-2.5 outline-none font-medium text-gray-600 cursor-not-allowed">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">เลขที่ PR</label>
+                        <input type="text" id="editPrNumber" list="prListGlobal" autocomplete="off" placeholder="พิมพ์หรือเลือก PR" class="w-full border border-gray-300 rounded-lg p-2.5 focus:border-blue-500 outline-none">
+                    </div>
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">ชื่อเวชภัณฑ์ <span class="text-red-500">*</span></label>
@@ -282,6 +345,16 @@
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">หน่วยนับ <span class="text-red-500">*</span></label>
                         <input type="text" id="editUnit" required list="unitList" autocomplete="off" class="w-full border border-gray-300 rounded-lg p-2.5 focus:border-blue-500 outline-none">
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4 bg-orange-50 p-3 rounded-lg border border-orange-100">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">แจ้งเตือนสต็อกต่ำกว่า <span class="text-xs text-gray-500">(ชิ้น)</span></label>
+                        <input type="number" id="editMinStock" min="1" required class="w-full border border-gray-300 rounded-lg p-2.5 focus:border-blue-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">แจ้งเตือนก่อนหมดอายุ <span class="text-xs text-gray-500">(วัน)</span></label>
+                        <input type="number" id="editExpiryAlertDays" min="1" required class="w-full border border-gray-300 rounded-lg p-2.5 focus:border-blue-500 outline-none">
                     </div>
                 </div>
                 <div class="grid grid-cols-2 gap-4">
@@ -302,22 +375,6 @@
         </div>
     </div>
 
-    <div id="deleteConfirmModal" class="fixed inset-0 bg-black/60 hidden justify-center items-center p-4 z-[70]">
-        <div class="bg-white rounded-xl shadow-xl w-full max-w-sm">
-            <div class="bg-red-600 p-4 text-white flex justify-between items-center rounded-t-xl">
-                <h2 class="text-xl font-bold flex items-center gap-2"><i data-lucide="alert-triangle"></i> ยืนยันการลบ</h2>
-            </div>
-            <div class="p-6 text-center">
-                <p class="text-gray-700 text-lg mb-4">คุณต้องการลบเวชภัณฑ์รหัส <br><strong id="delProdId" class="text-red-600 text-xl"></strong><br> ใช่หรือไม่?</p>
-                <p class="text-sm text-gray-500 mb-6">ข้อมูลสต็อกของรายการนี้จะถูกลบออกทั้งหมด (ไม่รวมในหน้าประวัติ)</p>
-                <div class="flex justify-center gap-3">
-                    <button type="button" onclick="closeModal('deleteConfirmModal')" class="px-6 py-2 bg-gray-100 rounded-lg font-medium">ยกเลิก</button>
-                    <button type="button" onclick="executeDeleteProduct()" class="px-6 py-2 text-white bg-red-600 hover:bg-red-700 rounded-lg font-medium shadow-sm transition-all active:scale-95">ยืนยันลบ</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <div id="editTransModal" class="fixed inset-0 bg-black/50 hidden justify-center items-center p-4 z-50">
         <div class="bg-white rounded-xl shadow-xl w-full max-w-lg">
             <div class="bg-blue-600 p-4 text-white flex justify-between items-center rounded-t-xl">
@@ -327,7 +384,7 @@
             <form id="editTransForm" onsubmit="handleEditTrans(event)" class="p-6 space-y-4">
                 <input type="hidden" id="editTransRow">
                 <div class="grid grid-cols-2 gap-4 bg-gray-50 p-3 rounded-lg border border-gray-200">
-                    <div><span class="block text-xs text-gray-500">รหัสเวชภัณฑ์</span><strong id="editTransProduct" class="text-sm text-gray-700"></strong></div>
+                    <div><span class="block text-xs text-gray-500">เวชภัณฑ์</span><strong id="editTransProduct" class="text-sm text-gray-700"></strong></div>
                     <div><span class="block text-xs text-gray-500">ประเภท</span><strong id="editTransType" class="text-sm text-gray-700"></strong></div>
                 </div>
                 <div>
@@ -339,6 +396,10 @@
                     <input type="number" id="editTransQty" min="1" required class="w-full border border-gray-300 rounded-lg p-2.5 focus:border-blue-500 outline-none">
                 </div>
                 <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">เลขที่ PR</label>
+                    <input type="text" id="editTransPr" list="prListGlobal" autocomplete="off" placeholder="แก้ไขเลข PR" class="w-full border border-gray-300 rounded-lg p-2.5 focus:border-blue-500 outline-none">
+                </div>
+                <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">จ่ายให้หน่วยงาน <span class="text-red-500">*</span></label>
                     <input type="text" id="editTransDept" required autocomplete="off" class="w-full border border-gray-300 rounded-lg p-2.5 focus:border-blue-500 outline-none">
                 </div>
@@ -347,6 +408,22 @@
                     <button type="submit" class="px-4 py-2 text-white bg-blue-600 rounded-lg font-medium">บันทึกประวัติ</button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <div id="deleteConfirmModal" class="fixed inset-0 bg-black/60 hidden justify-center items-center p-4 z-[70]">
+        <div class="bg-white rounded-xl shadow-xl w-full max-w-sm">
+            <div class="bg-red-600 p-4 text-white flex justify-between items-center rounded-t-xl">
+                <h2 class="text-xl font-bold flex items-center gap-2"><i data-lucide="alert-triangle"></i> ยืนยันการลบ</h2>
+            </div>
+            <div class="p-6 text-center">
+                <p class="text-gray-700 text-lg mb-4">คุณต้องการลบสต็อกรหัส <br><strong id="delProdId" class="text-red-600 text-xl"></strong><br> <span id="delPrText" class="font-bold text-gray-800"></span><br> ใช่หรือไม่?</p>
+                <p class="text-sm text-gray-500 mb-6">ข้อมูลสต็อกของรายการและ PR นี้ จะถูกลบออกทั้งหมด</p>
+                <div class="flex justify-center gap-3">
+                    <button type="button" onclick="closeModal('deleteConfirmModal')" class="px-6 py-2 bg-gray-100 rounded-lg font-medium">ยกเลิก</button>
+                    <button type="button" onclick="executeDeleteProduct()" class="px-6 py-2 text-white bg-red-600 hover:bg-red-700 rounded-lg font-medium shadow-sm transition-all active:scale-95">ยืนยันลบ</button>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -388,14 +465,21 @@
         let products = [];
         let inventory = [];
         let transactions = [];
-        let currentDeleteProductId = null;
+        let currentDeleteItem = { id: null, pr: null };
         let isPrinting = false; 
 
         let currentPageInventory = 1;
         let currentPageHistory = 1;
         const itemsPerPage = 10;
 
-        let fpRecvDate, fpRecvExpDate, fpEditRecvDate, fpEditExpDate, fpEditTransDate;
+        // ตัวแปรจัดเก็บสถานะการเรียงลำดับ (Sort)
+        let currentSort = {
+            inventory: { col: '', asc: true },
+            history: { col: '', asc: true }
+        };
+
+        let fpRecvDate, fpRecvExpDate, fpEditRecvDate, fpEditExpDate, fpEditTransDate, fpDisbDate;
+        let commonConfig;
 
         document.getElementById('printDate').innerHTML = 'วันที่พิมพ์: ' + new Date().toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric'}) + '<br><br>';
 
@@ -419,134 +503,337 @@
         function switchTab(tab) {
             document.getElementById('content-inventory').classList.toggle('hidden', tab !== 'inventory');
             document.getElementById('content-history').classList.toggle('hidden', tab !== 'history');
-            
             document.getElementById('tab-inventory').className = tab === 'inventory' ? 'tab-active px-6 py-4 font-bold text-gray-700 transition-colors' : 'px-6 py-4 font-bold text-gray-400 hover:text-gray-700 transition-colors';
             document.getElementById('tab-history').className = tab === 'history' ? 'tab-active px-6 py-4 font-bold text-gray-700 transition-colors' : 'px-6 py-4 font-bold text-gray-400 hover:text-gray-700 transition-colors';
         }
 
+        // --- ระบบติดต่อฐานข้อมูล ---
         function loadData() {
             showLoader('กำลังเชื่อมต่อ Google Sheets...');
-            google.script.run.withSuccessHandler(function(data) {
-                products = data.products;
-                inventory = data.inventory;
-                transactions = data.transactions;
-                
-                populateSelectOptions();
-                currentPageInventory = 1;
-                currentPageHistory = 1;
-                
-                renderTable();
-                renderHistory();
-                hideLoader();
-            }).getInitialData();
+            google.script.run
+                .withSuccessHandler(function(data) {
+                    products = data.products;
+                    inventory = data.inventory;
+                    transactions = data.transactions;
+                    populateSelectOptions();
+                    currentPageInventory = 1;
+                    currentPageHistory = 1;
+                    renderTable();
+                    renderHistory();
+                    hideLoader();
+                })
+                .withFailureHandler(function(err) {
+                    hideLoader(); showAlert('โหลดข้อมูลไม่สำเร็จ: ' + err.message);
+                })
+                .getInitialData();
         }
 
-        function getExpiryStatus(dateString) {
-            if (!dateString) return { status: 'safe', label: '-', color: 'text-gray-500', bg: '' };
-            const today = new Date();
-            const expiryDate = new Date(dateString);
-            const diffDays = Math.ceil((expiryDate - today) / (1000 * 60 * 60 * 24)); 
+        // --- เพิ่มฟังก์ชันจัดการเรียงลำดับ Sort ---
+        function handleSort(tab, col) {
+            if (currentSort[tab].col === col) {
+                currentSort[tab].asc = !currentSort[tab].asc;
+            } else {
+                currentSort[tab].col = col;
+                currentSort[tab].asc = true;
+            }
+            updateSortIcons(tab);
             
+            if (tab === 'inventory') renderTable();
+            else renderHistory();
+        }
+
+        function updateSortIcons(tab) {
+            const thead = tab === 'inventory' 
+                ? document.querySelector('#content-inventory thead') 
+                : document.querySelector('#content-history thead');
+
+            thead.querySelectorAll('.sort-icon-wrapper').forEach(wrapper => {
+                const col = wrapper.getAttribute('data-col');
+                if (col === currentSort[tab].col) {
+                    wrapper.innerHTML = `<i data-lucide="${currentSort[tab].asc ? 'chevron-up' : 'chevron-down'}" class="w-4 h-4 text-white"></i>`;
+                } else {
+                    wrapper.innerHTML = `<i data-lucide="chevrons-up-down" class="w-4 h-4 text-gray-400"></i>`;
+                }
+            });
+            lucide.createIcons({ root: thead });
+        }
+
+        // ฟังก์ชันแปลงวันที่แบบไทยเป็นตัวเลขเพื่อใช้เรียงลำดับ
+        function parseDateForSort(dateStr) {
+            if (!dateStr || dateStr === '-') return 0;
+            let parts = dateStr.split(' ');
+            let dParts = parts[0].split('/');
+            if (dParts.length === 3) {
+                let d = parseInt(dParts[0]);
+                let m = parseInt(dParts[1]) - 1;
+                let y = parseInt(dParts[2]);
+                if (y > 2400) y -= 543; // แปลงพ.ศ. เป็น ค.ศ.
+                let tParts = parts[1] ? parts[1].split(':') : ['00','00'];
+                return new Date(y, m, d, parseInt(tParts[0]), parseInt(tParts[1])).getTime();
+            }
+            return 0;
+        }
+
+        function handleReceive(e) {
+            e.preventDefault();
+            const inputId = document.getElementById('recvProductIdInput').value.trim();
+            const inputName = document.getElementById('recvProductName').value.trim();
+            const existingById = products.find(p => p.id.toLowerCase() === inputId.toLowerCase());
+            
+            if (existingById && existingById.name.toLowerCase() !== inputName.toLowerCase()) {
+                showAlert('รหัส "' + inputId + '" ซ้ำกับสินค้าที่มีอยู่แล้วคือ\n"' + existingById.name + '"\n\nกรุณาใช้รหัสอื่นสำหรับสินค้าใหม่');
+                return;
+            }
+            
+            const data = {
+                productId: inputId, productName: inputName, category: document.getElementById('recvCategory').value,
+                unit: document.getElementById('recvUnit').value, quantity: document.getElementById('recvQuantity').value,
+                receiveDate: document.getElementById('recvDate').value, expiryDate: document.getElementById('recvExpiryDate').value,
+                prNumber: document.getElementById('recvPrNumber').value.trim(),
+                minStock: document.getElementById('recvMinStock').value, 
+                expiryAlertDays: document.getElementById('recvExpiryAlertDays').value 
+            };
+            
+            showLoader('กำลังบันทึกรับเข้า...');
+            google.script.run
+                .withSuccessHandler(function(res) { 
+                    if(res && res.success) { closeModal('receiveModal'); loadData(); } 
+                    else { hideLoader(); showAlert(res ? res.message : 'เกิดข้อผิดพลาดในการบันทึก'); }
+                })
+                .withFailureHandler(function(err) { hideLoader(); showAlert('เซิร์ฟเวอร์เกิดข้อผิดพลาด: ' + err.message); })
+                .receiveItem(data);
+        }
+
+        function handleDisburse(e) {
+            e.preventDefault();
+            document.getElementById('disburseError').classList.add('hidden');
+            const productId = getDisbProductId();
+            if (!productId) {
+                document.getElementById('disburseError').innerText = 'กรุณาเลือกเวชภัณฑ์จากรายการให้ถูกต้อง';
+                document.getElementById('disburseError').classList.remove('hidden');
+                return;
+            }
+            
+            const data = { 
+                productId: productId, 
+                quantity: document.getElementById('disbQuantity').value, 
+                department: document.getElementById('disbDepartment').value,
+                disburseDate: document.getElementById('disbDate').value,
+                prNumber: document.getElementById('disbPrNumber').value.trim() 
+            };
+            
+            showLoader('กำลังเบิกออก...');
+            google.script.run
+                .withSuccessHandler(function(res) {
+                    if(res.success) { closeModal('disburseModal'); loadData(); }
+                    else { hideLoader(); document.getElementById('disburseError').innerText = res.message; document.getElementById('disburseError').classList.remove('hidden'); }
+                })
+                .withFailureHandler(function(err) { hideLoader(); showAlert('เซิร์ฟเวอร์เกิดข้อผิดพลาด: ' + err.message); })
+                .disburseItem(data);
+        }
+
+        function handleEdit(e) {
+            e.preventDefault();
+            const data = {
+                productId: document.getElementById('editProductId').value,
+                originalPr: document.getElementById('editOriginalPr').value,
+                productName: document.getElementById('editProductName').value.trim(),
+                category: document.getElementById('editCategory').value.trim(),
+                unit: document.getElementById('editUnit').value.trim(),
+                minStock: document.getElementById('editMinStock').value, 
+                expiryAlertDays: document.getElementById('editExpiryAlertDays').value, 
+                quantity: document.getElementById('editQuantity').value,         
+                receiveDate: document.getElementById('editReceiveDate').value,   
+                expiryDate: document.getElementById('editExpiryDate').value,
+                prNumber: document.getElementById('editPrNumber').value.trim() 
+            };
+            
+            showLoader('กำลังบันทึกการแก้ไข...');
+            google.script.run
+                .withSuccessHandler(function(res) { closeModal('editModal'); loadData(); })
+                .withFailureHandler(function(err) { hideLoader(); showAlert('เซิร์ฟเวอร์ทำงานผิดพลาด: ' + err.message); })
+                .editProduct(data);
+        }
+
+        function executeDeleteProduct() {
+            if(!currentDeleteItem.id) return;
+            showLoader('กำลังลบข้อมูล...');
+            google.script.run
+                .withSuccessHandler(function(res) { closeModal('deleteConfirmModal'); loadData(); })
+                .withFailureHandler(function(err) { hideLoader(); showAlert('ลบไม่สำเร็จ: ' + err.message); })
+                .deleteProduct(currentDeleteItem);
+        }
+
+        function handleEditTrans(e) {
+            e.preventDefault();
+            const data = {
+                row: document.getElementById('editTransRow').value,
+                date: document.getElementById('editTransDate').value,
+                qty: document.getElementById('editTransQty').value,
+                dept: document.getElementById('editTransDept').value || '-',
+                pr: document.getElementById('editTransPr').value.trim() 
+            };
+            
+            showLoader('กำลังแก้ไขประวัติ...');
+            google.script.run
+                .withSuccessHandler(function(res) { 
+                    if (res.success) { closeModal('editTransModal'); loadData(); } 
+                    else { hideLoader(); closeModal('editTransModal'); showAlert(res.message); }
+                })
+                .withFailureHandler(function(err) { hideLoader(); showAlert('แก้ไขประวัติไม่สำเร็จ: ' + err.message); })
+                .editTransactionData(data);
+        }
+
+        function executeDeleteTrans() {
+            const row = document.getElementById('delTransRow').value;
+            showLoader('กำลังลบประวัติ...');
+            google.script.run
+                .withSuccessHandler(function(res) { 
+                    if (res.success) { closeModal('deleteTransConfirmModal'); loadData(); } 
+                    else { hideLoader(); closeModal('deleteTransConfirmModal'); showAlert(res.message); }
+                })
+                .withFailureHandler(function(err) { hideLoader(); showAlert('ลบประวัติไม่สำเร็จ: ' + err.message); })
+                .deleteTransactionData(row);
+        }
+
+        function getExpiryStatus(dateString, alertDays = 3) {
+            if (!dateString || dateString === '-') return { status: 'safe', label: '-', color: 'text-gray-500', bg: '' };
+            const today = new Date();
+            const expiryDate = commonConfig.parseDate(dateString); 
+            if (!expiryDate) return { status: 'safe', label: '-', color: 'text-gray-500', bg: '' };
+            
+            const diffDays = Math.ceil((expiryDate - today) / (1000 * 60 * 60 * 24)); 
             if (diffDays < 0) return { status: 'expired', label: 'หมดอายุแล้ว', color: 'text-red-600 font-bold', bg: 'bg-red-100' };
-            if (diffDays <= 3) return { status: 'warning', label: 'ใกล้หมดอายุ', color: 'font-bold', bg: 'bg-orange-100' };
+            if (diffDays <= alertDays) return { status: 'warning', label: 'ใกล้หมดอายุ', color: 'font-bold', bg: 'bg-orange-100' };
             return { status: 'safe', label: 'ปกติ', bg: 'bg-green-100' };
         }
 
         function getInventorySummary(searchTerm = '', searchCategory = '') {
-            const summary = products.map(product => {
-                const productLots = inventory.filter(inv => inv.productId === product.id && inv.quantity > 0);
-                const totalQuantity = productLots.reduce((sum, item) => sum + item.quantity, 0);
-                let earliestExpiry = null;
-                if (productLots.length > 0) {
-                    earliestExpiry = productLots.reduce((earliest, current) => {
-                        if (!earliest.expiryDate) return current;
-                        if (!current.expiryDate) return earliest;
-                        return new Date(current.expiryDate) < new Date(earliest.expiryDate) ? current : earliest;
-                    }).expiryDate;
+            let groups = {};
+
+            inventory.forEach(inv => {
+                let key = inv.productId + '|' + inv.pr;
+                if (!groups[key]) {
+                    let prod = products.find(p => p.id === inv.productId) || { id: inv.productId, name: 'ไม่ทราบชื่อ', category: '-', unit: '-' };
+                    groups[key] = {
+                        id: inv.productId, name: prod.name, category: prod.category, unit: prod.unit,
+                        pr: inv.pr || '-', minStock: inv.minStock !== undefined ? inv.minStock : 10,
+                        expiryAlertDays: inv.expiryAlertDays !== undefined ? inv.expiryAlertDays : 3,
+                        lots: []
+                    };
                 }
-                return { ...product, totalQuantity, earliestExpiry, lastReceiveDate: product.lastReceiveDate || '-' };
-            }).filter(item => {
-                const matchNameOrId = item.name.toLowerCase().includes(searchTerm.toLowerCase()) || item.id.toLowerCase().includes(searchTerm.toLowerCase());
+                if (inv.quantity > 0) groups[key].lots.push(inv);
+            });
+
+            products.forEach(p => {
+                let hasGroup = Object.keys(groups).some(k => k.startsWith(p.id + '|'));
+                if (!hasGroup) {
+                    groups[p.id + '|-'] = {
+                        id: p.id, name: p.name, category: p.category, unit: p.unit, pr: '-',
+                        minStock: 10, expiryAlertDays: 3, lots: []
+                    };
+                }
+            });
+
+            let summary = Object.values(groups).map(g => {
+                let totalQuantity = g.lots.reduce((sum, l) => sum + l.quantity, 0);
+                let earliestExpiry = null;
+                let targetReceiveDate = '-';
+
+                if (g.lots.length > 0) {
+                    const targetLot = g.lots.reduce((earliest, current) => {
+                        if (!earliest.expiryDate || earliest.expiryDate === '-') return current;
+                        if (!current.expiryDate || current.expiryDate === '-') return earliest;
+                        const dEarliest = commonConfig.parseDate(earliest.expiryDate);
+                        const dCurrent = commonConfig.parseDate(current.expiryDate);
+                        if (!dEarliest) return current;
+                        if (!dCurrent) return earliest;
+                        return dCurrent < dEarliest ? current : earliest;
+                    });
+                    earliestExpiry = targetLot.expiryDate;
+                    targetReceiveDate = targetLot.receiveDate || '-';
+                }
+                return { ...g, totalQuantity, earliestExpiry, lastReceiveDate: targetReceiveDate };
+            });
+
+            summary = summary.filter(item => {
+                const matchSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase()) || item.id.toLowerCase().includes(searchTerm.toLowerCase()) || item.pr.toLowerCase().includes(searchTerm.toLowerCase());
                 const matchCategory = searchCategory === '' || item.category === searchCategory;
-                return matchNameOrId && matchCategory;
+                return matchSearch && matchCategory;
             });
 
             summary.sort((a, b) => {
-                const aQtyCritical = a.totalQuantity > 0 && a.totalQuantity < 10;
-                const bQtyCritical = b.totalQuantity > 0 && b.totalQuantity < 10;
-                const aExpAlert = ['expired', 'warning'].includes(getExpiryStatus(a.earliestExpiry).status);
-                const bExpAlert = ['expired', 'warning'].includes(getExpiryStatus(b.earliestExpiry).status);
+                if (currentSort.inventory.col) {
+                    let valA = a[currentSort.inventory.col];
+                    let valB = b[currentSort.inventory.col];
+                    let asc = currentSort.inventory.asc ? 1 : -1;
 
-                let aScore = (aQtyCritical ? 20 : 0) + (aExpAlert ? 10 : 0);
-                let bScore = (bQtyCritical ? 20 : 0) + (bExpAlert ? 10 : 0);
+                    if (typeof valA === 'number' && typeof valB === 'number') {
+                        return (valA - valB) * asc;
+                    }
 
-                if (aScore !== bScore) return bScore - aScore; 
-                return a.totalQuantity - b.totalQuantity;
+                    if (currentSort.inventory.col === 'lastReceiveDate' || currentSort.inventory.col === 'earliestExpiry') {
+                        valA = parseDateForSort(valA);
+                        valB = parseDateForSort(valB);
+                        return (valA - valB) * asc;
+                    }
+
+                    valA = String(valA || '').toLowerCase();
+                    valB = String(valB || '').toLowerCase();
+                    if (valA < valB) return -1 * asc;
+                    if (valA > valB) return 1 * asc;
+                    return 0;
+                } else {
+                    // Default Sorting หากยังไม่มีการกด
+                    const aQtyCritical = a.totalQuantity > 0 && a.totalQuantity < a.minStock;
+                    const bQtyCritical = b.totalQuantity > 0 && b.totalQuantity < b.minStock;
+                    const aExpAlert = ['expired', 'warning'].includes(getExpiryStatus(a.earliestExpiry, a.expiryAlertDays).status);
+                    const bExpAlert = ['expired', 'warning'].includes(getExpiryStatus(b.earliestExpiry, b.expiryAlertDays).status);
+
+                    let aScore = (aQtyCritical ? 20 : 0) + (aExpAlert ? 10 : 0);
+                    let bScore = (bQtyCritical ? 20 : 0) + (bExpAlert ? 10 : 0);
+                    if (aScore !== bScore) return bScore - aScore; 
+                    return a.totalQuantity - b.totalQuantity;
+                }
             });
+
             return summary;
         }
 
         function renderPagination(containerId, totalItems, totalPages, type) {
+            // ...คงเดิม...
             const container = document.getElementById(containerId);
             let currentPage = type === 'inventory' ? currentPageInventory : currentPageHistory;
-            
             if (isPrinting || totalItems <= itemsPerPage) {
-                container.innerHTML = '';
-                container.classList.add('hidden');
-                container.classList.remove('flex');
-                return;
+                container.innerHTML = ''; container.classList.add('hidden'); container.classList.remove('flex'); return;
             }
-
-            container.classList.remove('hidden');
-            container.classList.add('flex');
-
+            container.classList.remove('hidden'); container.classList.add('flex');
             let startItem = ((currentPage - 1) * itemsPerPage) + 1;
             let endItem = Math.min(currentPage * itemsPerPage, totalItems);
 
             container.innerHTML = `
                 <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between w-full">
-                    <div>
-                        <p class="text-sm text-gray-700">
-                            แสดง <span class="font-medium">${startItem}</span> ถึง <span class="font-medium">${endItem}</span> จาก <span class="font-medium">${totalItems}</span> รายการ
-                        </p>
-                    </div>
+                    <div><p class="text-sm text-gray-700">แสดง <span class="font-medium">${startItem}</span> ถึง <span class="font-medium">${endItem}</span> จาก <span class="font-medium">${totalItems}</span> รายการ</p></div>
                     <div>
                         <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
-                            <button onclick="changePage('${type}', ${currentPage - 1})" ${currentPage === 1 ? 'disabled class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-gray-100 text-sm font-medium text-gray-400 cursor-not-allowed"' : 'class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"'}>
-                                <span class="sr-only">ก่อนหน้า</span>
-                                <i data-lucide="chevron-left" class="h-5 w-5"></i>
-                            </button>
-                            <span class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700">
-                                หน้า ${currentPage} / ${totalPages}
-                            </span>
-                            <button onclick="changePage('${type}', ${currentPage + 1})" ${currentPage === totalPages ? 'disabled class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-gray-100 text-sm font-medium text-gray-400 cursor-not-allowed"' : 'class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"'}>
-                                <span class="sr-only">ถัดไป</span>
-                                <i data-lucide="chevron-right" class="h-5 w-5"></i>
-                            </button>
+                            <button onclick="changePage('${type}', ${currentPage - 1})" ${currentPage === 1 ? 'disabled class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-gray-100 text-sm font-medium text-gray-400 cursor-not-allowed"' : 'class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"'}><i data-lucide="chevron-left" class="h-5 w-5"></i></button>
+                            <span class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700">หน้า ${currentPage} / ${totalPages}</span>
+                            <button onclick="changePage('${type}', ${currentPage + 1})" ${currentPage === totalPages ? 'disabled class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-gray-100 text-sm font-medium text-gray-400 cursor-not-allowed"' : 'class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"'}><i data-lucide="chevron-right" class="h-5 w-5"></i></button>
                         </nav>
                     </div>
                 </div>
                 <div class="flex items-center justify-between sm:hidden w-full">
-                    <button onclick="changePage('${type}', ${currentPage - 1})" ${currentPage === 1 ? 'disabled class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-400 bg-gray-100"' : 'class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"'}>
-                        ก่อนหน้า
-                    </button>
+                    <button onclick="changePage('${type}', ${currentPage - 1})" ${currentPage === 1 ? 'disabled class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-400 bg-gray-100"' : 'class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"'}>ก่อนหน้า</button>
                     <span class="text-sm text-gray-700">หน้า ${currentPage} / ${totalPages}</span>
-                    <button onclick="changePage('${type}', ${currentPage + 1})" ${currentPage === totalPages ? 'disabled class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-400 bg-gray-100"' : 'class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"'}>
-                        ถัดไป
-                    </button>
+                    <button onclick="changePage('${type}', ${currentPage + 1})" ${currentPage === totalPages ? 'disabled class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-400 bg-gray-100"' : 'class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"'}>ถัดไป</button>
                 </div>
             `;
             lucide.createIcons();
         }
 
         function changePage(type, newPage) {
-            if (type === 'inventory') {
-                currentPageInventory = newPage;
-                renderTable();
-            } else {
-                currentPageHistory = newPage;
-                renderHistory();
-            }
+            if (type === 'inventory') { currentPageInventory = newPage; renderTable(); } 
+            else { currentPageHistory = newPage; renderHistory(); }
         }
 
         function renderTable() {
@@ -564,18 +851,15 @@
             const paginatedData = isPrinting ? summary : summary.slice(startIdx, endIdx);
 
             if (paginatedData.length === 0) {
-                tbody.innerHTML = `<tr><td colSpan="8" class="p-8 text-center text-gray-500">ไม่พบข้อมูล</td></tr>`;
-                renderPagination('paginationInventory', 0, 1, 'inventory');
-                return;
+              tbody.innerHTML = `<tr><td colSpan="9" class="p-8 text-center text-gray-500">ไม่พบข้อมูล</td></tr>`; 
+              renderPagination('paginationInventory', 0, 1, 'inventory'); return;
             }
 
             paginatedData.forEach(item => {
-                const expiryInfo = getExpiryStatus(item.earliestExpiry);
-                
-                const fmtExpDate = item.earliestExpiry ? new Date(item.earliestExpiry).toLocaleString('th-TH', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }) : '-';
-                const fmtRecvDate = item.lastReceiveDate !== '-' ? new Date(item.lastReceiveDate).toLocaleString('th-TH', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }) : '-';
-                
-                const isCriticalQty = item.totalQuantity > 0 && item.totalQuantity < 10;
+                const expiryInfo = getExpiryStatus(item.earliestExpiry, item.expiryAlertDays);
+                const fmtExpDate = (item.earliestExpiry && item.earliestExpiry !== '-') ? item.earliestExpiry : '-';
+                const fmtRecvDate = (item.lastReceiveDate && item.lastReceiveDate !== '-') ? item.lastReceiveDate : '-';
+                const isCriticalQty = item.totalQuantity > 0 && item.totalQuantity < item.minStock;
                 const isZero = item.totalQuantity === 0;
 
                 let rowClass = 'transition-colors ';
@@ -600,31 +884,25 @@
 
                 let remarkHTML = `<span class="text-black">-</span>`;
                 if (remarks.length > 0) {
-                    let innerHTML = remarks.map((r, i) => {
-                        let sep = i < remarks.length - 1 ? '<span class="print:hidden">, </span>' : '';
-                        return `<span class="print:block">${r}${sep}</span>`;
-                    }).join('');
-                    remarkHTML = `<span class="bg-red-50 text-red-700 px-2 py-1 rounded-md text-sm font-normal border border-red-200 inline-block text-center">${innerHTML}</span>`;
+                    let innerHTML = remarks.map((r, i) => `<span class="print:block">${r}${i < remarks.length - 1 ? '<span class="print:hidden">, </span>' : ''}</span>`).join('');
+                    remarkHTML = `<span class="bg-red-50 text-red-700 px-2 py-1 rounded-md text-sm font-normal border border-red-200 inline-block text-center whitespace-nowrap">${innerHTML}</span>`;
                 }
+
+                let safePrArg = item.pr === '-' ? '' : item.pr.replace(/'/g, "\\'").replace(/"/g, '&quot;');
 
                 tbody.innerHTML += `
                     <tr class="${rowClass}">
                         <td class="p-4 text-sm font-normal text-black">${item.id}</td>
+                        <td class="p-4 text-sm font-normal text-black font-semibold text-blue-600">${item.pr}</td> 
                         <td class="p-4 text-sm font-normal text-black">${item.name}</td>
                         <td class="p-4 text-sm font-normal text-black">${item.category}</td>
-                        <td class="p-4 text-center">
-                            <span class="inline-block px-2 py-1 rounded-full text-sm font-normal transition-transform ${qtyBadgeClass}">${item.totalQuantity} ${item.unit !== '-' ? item.unit : ''}</span>
-                        </td>
+                        <td class="p-4 text-center"><span class="inline-block px-2 py-1 rounded-full text-sm font-normal transition-transform ${qtyBadgeClass}">${item.totalQuantity} ${item.unit !== '-' ? item.unit : ''}</span></td>
                         <td class="p-4 text-center text-sm font-normal text-black">${fmtRecvDate}</td>
                         <td class="p-4 text-center">${expiryHTML}</td>
                         <td class="p-4 text-center">${remarkHTML}</td>
                         <td class="p-4 text-center print:hidden flex justify-center gap-1">
-                            <button onclick="openEditModal('${item.id}')" class="text-blue-500 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 p-1.5 rounded-lg transition-colors" title="แก้ไขข้อมูล">
-                                <i data-lucide="edit" class="w-4 h-4"></i>
-                            </button>
-                            <button onclick="confirmDeleteProduct('${item.id}')" class="text-red-500 hover:text-red-700 bg-red-50 hover:bg-red-100 p-1.5 rounded-lg transition-colors" title="ลบข้อมูล">
-                                <i data-lucide="trash-2" class="w-4 h-4"></i>
-                            </button>
+                            <button onclick="openEditModal('${item.id}', '${safePrArg}')" class="text-blue-500 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 p-1.5 rounded-lg transition-colors" title="แก้ไขข้อมูล/อัปเดต PR"><i data-lucide="edit" class="w-4 h-4"></i></button>
+                            <button onclick="confirmDeleteProduct('${item.id}', '${safePrArg}')" class="text-red-500 hover:text-red-700 bg-red-50 hover:bg-red-100 p-1.5 rounded-lg transition-colors" title="ลบล็อตสินค้านี้"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
                         </td>
                     </tr>`;
             });
@@ -638,16 +916,39 @@
             const tbody = document.getElementById('historyTableBody');
             tbody.innerHTML = '';
             
-            let filteredTrans = transactions.filter(t => {
+            let filteredTrans = transactions.map(t => {
                 const pd = products.find(p => p.id === t.pId);
-                const pdName = pd ? pd.name.toLowerCase() : '';
-                const pdCat = pd ? pd.category : '';
-                
-                const matchSearch = t.pId.toLowerCase().includes(searchTerm) || pdName.includes(searchTerm);
-                const matchCat = searchCategory === '' || pdCat === searchCategory;
+                return { ...t, name: pd ? pd.name : 'ไม่ทราบชื่อ', category: pd ? pd.category : '-' };
+            }).filter(t => {
+                const matchSearch = t.pId.toLowerCase().includes(searchTerm) || t.name.toLowerCase().includes(searchTerm) || (t.pr && t.pr.toLowerCase().includes(searchTerm));
+                const matchCat = searchCategory === '' || t.category === searchCategory;
                 return matchSearch && matchCat;
             });
             
+            if (currentSort.history.col) {
+                filteredTrans.sort((a, b) => {
+                    let valA = a[currentSort.history.col];
+                    let valB = b[currentSort.history.col];
+                    let asc = currentSort.history.asc ? 1 : -1;
+
+                    if (currentSort.history.col === 'qty') {
+                        return (Number(valA) - Number(valB)) * asc;
+                    }
+
+                    if (currentSort.history.col === 'date') {
+                        valA = parseDateForSort(valA);
+                        valB = parseDateForSort(valB);
+                        return (valA - valB) * asc;
+                    }
+
+                    valA = String(valA || '').toLowerCase();
+                    valB = String(valB || '').toLowerCase();
+                    if (valA < valB) return -1 * asc;
+                    if (valA > valB) return 1 * asc;
+                    return 0;
+                });
+            }
+
             const totalPages = Math.ceil(filteredTrans.length / itemsPerPage);
             if (currentPageHistory > totalPages && totalPages > 0) currentPageHistory = totalPages;
 
@@ -656,20 +957,19 @@
             const paginatedTrans = isPrinting ? filteredTrans : filteredTrans.slice(startIdx, endIdx);
 
             if(paginatedTrans.length === 0) {
-                tbody.innerHTML = `<tr><td colSpan="7" class="p-8 text-center text-gray-500">ไม่พบประวัติทำรายการที่ค้นหา</td></tr>`;
-                renderPagination('paginationHistory', 0, 1, 'history');
-                return;
+                tbody.innerHTML = `<tr><td colSpan="8" class="p-8 text-center text-gray-500">ไม่พบประวัติทำรายการที่ค้นหา</td></tr>`;
+                renderPagination('paginationHistory', 0, 1, 'history'); return;
             }
             
             paginatedTrans.forEach(t => {
-                const pd = products.find(p => p.id === t.pId);
+                 const pd = products.find(p => p.id === t.pId);
                 const pdName = pd ? pd.name : 'ไม่ทราบชื่อ';
-                
                 let safeDept = t.dept.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+                let safePr = t.pr ? t.pr.replace(/'/g, "\\'").replace(/"/g, '&quot;') : '';
                 
                 let typeBadge = t.type === 'รับเข้า' 
-                     ? '<span class="whitespace-nowrap bg-green-100 text-green-700 px-2 py-1 rounded-md text-sm font-normal border border-green-200">รับเข้า</span>' 
-                     : '<span class="whitespace-nowrap bg-orange-100 text-orange-700 px-2 py-1 rounded-md text-sm font-normal border border-orange-200">เบิกออก</span>';
+                    ? '<span class="bg-green-100 text-green-700 px-2 py-1 rounded-md text-sm font-normal border border-green-200 whitespace-nowrap">รับเข้า</span>' 
+                    : '<span class="bg-orange-100 text-orange-700 px-2 py-1 rounded-md text-sm font-normal border border-orange-200 whitespace-nowrap">เบิกออก</span>';
                 
                 tbody.innerHTML += `
                     <tr class="hover:bg-gray-50 transition-colors">
@@ -678,14 +978,11 @@
                         <td class="p-4 text-sm font-normal text-black">${pdName}</td>
                         <td class="p-4 text-center">${typeBadge}</td>
                         <td class="p-4 text-center text-sm font-normal text-black">${t.qty}</td>
+                        <td class="p-4 text-center text-sm font-normal text-black">${t.pr || '-'}</td>
                         <td class="p-4 text-center text-sm font-normal text-black">${t.dept}</td>
                         <td class="p-4 text-center print:hidden flex justify-center gap-1">
-                            <button onclick="openEditTransModal('${t.row}', '${t.pId}', '${t.type}', '${t.qty}', '${safeDept}', '${t.rawDate}')" class="text-blue-500 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 p-1.5 rounded-lg transition-colors" title="แก้ไขประวัติ">
-                                <i data-lucide="edit" class="w-4 h-4"></i>
-                            </button>
-                            <button onclick="confirmDeleteTrans('${t.row}')" class="text-red-500 hover:text-red-700 bg-red-50 hover:bg-red-100 p-1.5 rounded-lg transition-colors" title="ลบประวัติ">
-                                <i data-lucide="trash-2" class="w-4 h-4"></i>
-                            </button>
+                            <button onclick="openEditTransModal('${t.row}', '${t.pId}', '${t.type}', '${t.qty}', '${safeDept}', '${t.rawDate}', '${safePr}')" class="text-blue-500 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 p-1.5 rounded-lg transition-colors" title="แก้ไขประวัติ"><i data-lucide="edit" class="w-4 h-4"></i></button>
+                            <button onclick="confirmDeleteTrans('${t.row}')" class="text-red-500 hover:text-red-700 bg-red-50 hover:bg-red-100 p-1.5 rounded-lg transition-colors" title="ลบประวัติ"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
                         </td>
                     </tr>`;
             });
@@ -693,28 +990,20 @@
             renderPagination('paginationHistory', filteredTrans.length, totalPages, 'history');
         }
 
-        window.addEventListener('beforeprint', () => {
-            isPrinting = true;
-            renderTable();
-            renderHistory();
-        });
-
-        window.addEventListener('afterprint', () => {
-            isPrinting = false;
-            renderTable();
-            renderHistory();
-        });
+        window.addEventListener('beforeprint', () => { isPrinting = true; renderTable(); renderHistory(); });
+        window.addEventListener('afterprint', () => { isPrinting = false; renderTable(); renderHistory(); });
 
         function exportToCSV() {
             const searchTerm = document.getElementById('searchInput').value;
             const searchCategory = document.getElementById('categoryFilter').value;
             const summary = getInventorySummary(searchTerm, searchCategory);
-            const headers = ['รหัส', 'ชื่อเวชภัณฑ์', 'หมวดหมู่', 'จำนวนคงเหลือ', 'หน่วยนับ', 'วันรับเข้า', 'วันหมดอายุ', 'หมายเหตุ'];
+            const headers = ['รหัส', 'เลขที่ PR', 'ชื่อเวชภัณฑ์', 'หมวดหมู่', 'จำนวนคงเหลือ', 'หน่วยนับ', 'วันรับเข้า', 'วันหมดอายุ', 'หมายเหตุ'];
+
             const rows = summary.map(item => {
-                const expiryInfo = getExpiryStatus(item.earliestExpiry);
-                const fmtExpDate = item.earliestExpiry ? new Date(item.earliestExpiry).toLocaleString('th-TH', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }) : '-';
-                const fmtRecvDate = item.lastReceiveDate !== '-' ? new Date(item.lastReceiveDate).toLocaleString('th-TH', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }) : '-';
-                const isCriticalQty = item.totalQuantity > 0 && item.totalQuantity < 10;
+                const expiryInfo = getExpiryStatus(item.earliestExpiry, item.expiryAlertDays);
+                const fmtExpDate = (item.earliestExpiry && item.earliestExpiry !== '-') ? item.earliestExpiry : '-';
+                const fmtRecvDate = (item.lastReceiveDate && item.lastReceiveDate !== '-') ? item.lastReceiveDate : '-';
+                const isCriticalQty = item.totalQuantity > 0 && item.totalQuantity < item.minStock;
                 const isZero = item.totalQuantity === 0;
                 let remarks = [];
                 if (isZero) remarks.push('หมดสต็อก');
@@ -722,14 +1011,14 @@
                 if (expiryInfo.status === 'expired') remarks.push('หมดอายุ');
                 else if (expiryInfo.status === 'warning') remarks.push('ใกล้หมดอายุ');
                 let remarkText = remarks.length > 0 ? remarks.join(' / ') : '-';
-                return [`"${item.id}"`, `"${item.name}"`, `"${item.category}"`, item.totalQuantity, `"${item.unit !== '-' ? item.unit : ''}"`, `"${fmtRecvDate}"`, `"${fmtExpDate}"`, `"${remarkText}"`];
+                return [`"${item.id}"`, `"${item.pr}"`, `"${item.name}"`, `"${item.category}"`, item.totalQuantity, `"${item.unit !== '-' ? item.unit : ''}"`, `"${fmtRecvDate}"`, `"${fmtExpDate}"`, `"${remarkText}"`];
             });
-            const csvContent = "\uFEFF" + [headers.join(","), ...rows.map(e => e.join(","))].join("\n");
-            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-            const link = document.createElement("a");
-            link.href = URL.createObjectURL(blob);
-            link.download = `inventory_report_${new Date().toISOString().split('T')[0]}.csv`;
-            link.click();
+           const csvContent = "\uFEFF" + [headers.join(","), ...rows.map(e => e.join(","))].join("\n");
+           const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+           const link = document.createElement("a");
+           link.href = URL.createObjectURL(blob);
+           link.download = `รายการเวชภัณฑ์_${new Date().toISOString().split('T')[0]}.csv`;
+           link.click();
         }
 
         function exportHistoryToCSV() {
@@ -739,22 +1028,22 @@
                 const pd = products.find(p => p.id === t.pId);
                 const pdName = pd ? pd.name.toLowerCase() : '';
                 const pdCat = pd ? pd.category : '';
-                const matchSearch = t.pId.toLowerCase().includes(searchTerm) || pdName.includes(searchTerm);
+                const matchSearch = t.pId.toLowerCase().includes(searchTerm) || pdName.includes(searchTerm) || (t.pr && t.pr.toLowerCase().includes(searchTerm));
                 const matchCat = searchCategory === '' || pdCat === searchCategory;
                 return matchSearch && matchCat;
             });
-            const headers = ['เวลาทำรายการ', 'รหัส', 'ชื่อเวชภัณฑ์', 'หมวดหมู่', 'ประเภท', 'จำนวน', 'จ่ายให้หน่วยงาน'];
+            const headers = ['เวลาทำรายการ', 'รหัส', 'ชื่อเวชภัณฑ์', 'หมวดหมู่', 'ประเภท', 'จำนวน', 'เลขที่ PR', 'จ่ายให้หน่วยงาน'];
             const rows = filteredTrans.map(t => {
                 const pd = products.find(p => p.id === t.pId);
                 const pdName = pd ? pd.name : 'ไม่ทราบชื่อ';
                 const pdCat = pd ? pd.category : '-';
-                return [`"${t.date}"`, `"${t.pId}"`, `"${pdName}"`, `"${pdCat}"`, `"${t.type}"`, t.qty, `"${t.dept}"`];
+                return [`"${t.date}"`, `"${t.pId}"`, `"${pdName}"`, `"${pdCat}"`, `"${t.type}"`, t.qty, `"${t.pr || '-'}"`, `"${t.dept}"`];
             });
             const csvContent = "\uFEFF" + [headers.join(","), ...rows.map(e => e.join(","))].join("\n");
             const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
             const link = document.createElement("a");
             link.href = URL.createObjectURL(blob);
-            link.download = `transaction_history_${new Date().toISOString().split('T')[0]}.csv`;
+            link.download = `ประวัติการทำรายการ_${new Date().toISOString().split('T')[0]}.csv`;
             link.click();
         }
 
@@ -773,12 +1062,12 @@
         }
 
         function openModal(id) {
-            document.getElementById(id).classList.remove('hidden'); 
-            document.getElementById(id).classList.add('flex');
-            
+            document.getElementById(id).classList.remove('hidden'); document.getElementById(id).classList.add('flex');
             if(id === 'disburseModal') { 
                 document.getElementById('disburseForm').reset(); 
                 document.getElementById('disbStockInfo').classList.add('hidden'); 
+                document.getElementById('disbPrList').innerHTML = ''; 
+                fpDisbDate.setDate(new Date()); 
             } else if(id === 'receiveModal') { 
                 document.getElementById('receiveForm').reset();
                 fpRecvDate.setDate(new Date());
@@ -786,133 +1075,60 @@
                 document.getElementById('recvProductIdInput').value = generateNewProductId();
             }
         }
-        function closeModal(id) { 
-            document.getElementById(id).classList.add('hidden'); 
-            document.getElementById(id).classList.remove('flex'); 
-        }
+        function closeModal(id) { document.getElementById(id).classList.add('hidden'); document.getElementById(id).classList.remove('flex'); }
 
-        function openEditModal(productId) {
+        function openEditModal(productId, pr) {
             const product = products.find(p => p.id === productId);
             if (!product) return;
             
-            const summaryData = getInventorySummary(product.name, product.category).find(s => s.id === productId);
+            const summary = getInventorySummary();
+            const prTarget = pr === '' ? '-' : pr;
+            const summaryData = summary.find(s => s.id === productId && s.pr === prTarget);
+
             document.getElementById('editProductId').value = product.id;
+            document.getElementById('editOriginalPr').value = pr; 
+            document.getElementById('editPrNumber').value = pr; 
             document.getElementById('editProductName').value = product.name;
             document.getElementById('editCategory').value = product.category;
             document.getElementById('editUnit').value = product.unit !== '-' ? product.unit : '';
-            document.getElementById('editQuantity').value = summaryData ? summaryData.totalQuantity : 0;
-
-            const inventoryLots = inventory.filter(inv => inv.productId === productId);
-            let recvDateStr = '';
-            let expDateStr = '';
             
-            if (inventoryLots.length > 0) {
-                const targetLot = inventoryLots.reduce((earliest, current) => {
-                    if (!earliest.expiryDate) return current;
-                    if (!current.expiryDate) return earliest;
-                    const dEarliest = new Date(earliest.expiryDate);
-                    const dCurrent = new Date(current.expiryDate);
-                    if (isNaN(dEarliest)) return current;
-                    if (isNaN(dCurrent)) return earliest;
-                    return dCurrent < dEarliest ? current : earliest;
-                });
-                recvDateStr = targetLot.receiveDate || '';
-                expDateStr = targetLot.expiryDate || '';
+            if (summaryData) {
+                document.getElementById('editQuantity').value = summaryData.totalQuantity;
+                document.getElementById('editMinStock').value = summaryData.minStock;
+                document.getElementById('editExpiryAlertDays').value = summaryData.expiryAlertDays;
+                
+                if (summaryData.lastReceiveDate !== '-') fpEditRecvDate.setDate(summaryData.lastReceiveDate); else fpEditRecvDate.clear();
+                if (summaryData.earliestExpiry !== '-') fpEditExpDate.setDate(summaryData.earliestExpiry); else fpEditExpDate.clear();
+            } else {
+                document.getElementById('editQuantity').value = 0;
+                document.getElementById('editMinStock').value = 10;
+                document.getElementById('editExpiryAlertDays').value = 3;
+                fpEditRecvDate.clear(); fpEditExpDate.clear();
             }
-
-            if (recvDateStr) fpEditRecvDate.setDate(recvDateStr);
-            else fpEditRecvDate.clear();
-            
-            if (expDateStr) fpEditExpDate.setDate(expDateStr);
-            else fpEditExpDate.clear();
 
             openModal('editModal');
         }
 
-        function handleEdit(e) {
-            e.preventDefault();
-            const data = {
-                productId: document.getElementById('editProductId').value,
-                productName: document.getElementById('editProductName').value.trim(),
-                category: document.getElementById('editCategory').value.trim(),
-                unit: document.getElementById('editUnit').value.trim(),
-                quantity: document.getElementById('editQuantity').value,         
-                receiveDate: document.getElementById('editReceiveDate').value,   
-                expiryDate: document.getElementById('editExpiryDate').value      
-            };
-            showLoader('กำลังบันทึกการแก้ไข...');
-            google.script.run.withSuccessHandler(function() { closeModal('editModal'); loadData(); }).editProduct(data);
-        }
-
-        function confirmDeleteProduct(id) {
-            currentDeleteProductId = id;
-            document.getElementById('delProdId').innerText = id;
-            openModal('deleteConfirmModal');
-        }
-
-        function executeDeleteProduct() {
-            if(!currentDeleteProductId) return;
-            showLoader('กำลังลบข้อมูลเวชภัณฑ์...');
-            google.script.run.withSuccessHandler(function() { 
-                closeModal('deleteConfirmModal'); 
-                loadData(); 
-            }).deleteProduct(currentDeleteProductId);
-        }
-
-        function openEditTransModal(row, pId, type, qty, dept, rawDate) {
+        function openEditTransModal(row, pId, type, qty, dept, rawDate, pr) {
             document.getElementById('editTransRow').value = row;
-            document.getElementById('editTransProduct').innerText = pId;
+            const pd = products.find(p => p.id === pId);
+            document.getElementById('editTransProduct').innerText = pId + ' - ' + (pd ? pd.name : 'ไม่ทราบชื่อ');
             document.getElementById('editTransType').innerText = type;
             
-            if (rawDate) fpEditTransDate.setDate(rawDate);
-            else fpEditTransDate.clear();
-            
+            if (rawDate) fpEditTransDate.setDate(rawDate); else fpEditTransDate.clear();
             document.getElementById('editTransQty').value = qty;
             document.getElementById('editTransDept').value = dept;
-            
+            document.getElementById('editTransPr').value = pr || ''; 
             openModal('editTransModal');
         }
 
-        function handleEditTrans(e) {
-            e.preventDefault();
-            const data = {
-                row: document.getElementById('editTransRow').value,
-                date: document.getElementById('editTransDate').value,
-                qty: document.getElementById('editTransQty').value,
-                dept: document.getElementById('editTransDept').value || '-'
-            };
-            showLoader('กำลังแก้ไขประวัติ...');
-            google.script.run.withSuccessHandler(function(res) { 
-                if (res.success) {
-                    closeModal('editTransModal'); 
-                    loadData(); 
-                } else {
-                    hideLoader();
-                    closeModal('editTransModal');
-                    showAlert(res.message);
-                }
-            }).editTransactionData(data);
+        function confirmDeleteProduct(id, pr) { 
+            currentDeleteItem = { id: id, pr: pr }; 
+            document.getElementById('delProdId').innerText = id; 
+            document.getElementById('delPrText').innerText = (pr !== '' && pr !== '-') ? `(PR: ${pr})` : '';
+            openModal('deleteConfirmModal'); 
         }
-
-        function confirmDeleteTrans(row) {
-            document.getElementById('delTransRow').value = row;
-            openModal('deleteTransConfirmModal');
-        }
-
-        function executeDeleteTrans() {
-            const row = document.getElementById('delTransRow').value;
-            showLoader('กำลังลบประวัติ...');
-            google.script.run.withSuccessHandler(function(res) { 
-                if (res.success) {
-                    closeModal('deleteTransConfirmModal'); 
-                    loadData(); 
-                } else {
-                    hideLoader();
-                    closeModal('deleteTransConfirmModal');
-                    showAlert(res.message);
-                }
-            }).deleteTransactionData(row);
-        }
+        function confirmDeleteTrans(row) { document.getElementById('delTransRow').value = row; openModal('deleteTransConfirmModal'); }
 
         function populateSelectOptions() {
             let datalistDisbHTML = '';
@@ -925,20 +1141,17 @@
             document.getElementById('categoryFilter').innerHTML = filterCatHTML;
             document.getElementById('historyCategoryFilter').innerHTML = filterCatHTML; 
 
-            let datalistCatHTML = '';
-            uniqueCategories.forEach(c => { datalistCatHTML += `<option value="${c}">`; });
-            document.getElementById('categoryList').innerHTML = datalistCatHTML;
-
+            let datalistCatHTML = ''; uniqueCategories.forEach(c => { datalistCatHTML += `<option value="${c}">`; }); document.getElementById('categoryList').innerHTML = datalistCatHTML;
             let uniqueUnits = [...new Set(products.map(p => p.unit).filter(u => u && u !== '-'))];
-            let datalistUnitHTML = '';
-            uniqueUnits.forEach(u => { datalistUnitHTML += `<option value="${u}">`; });
-            document.getElementById('unitList').innerHTML = datalistUnitHTML;
+            let datalistUnitHTML = ''; uniqueUnits.forEach(u => { datalistUnitHTML += `<option value="${u}">`; }); document.getElementById('unitList').innerHTML = datalistUnitHTML;
+
+            let globalPrs = [...new Set(transactions.map(t => t.pr).filter(p => p && p !== '-'))];
+            let prListHTML = ''; globalPrs.forEach(pr => prListHTML += `<option value="${pr}">`); document.getElementById('prListGlobal').innerHTML = prListHTML;
         }
 
         function getDisbProductId() {
             const val = document.getElementById('disbProductSearch').value;
-            const match = val.match(/^\[(.*?)\]/);
-            return match ? match[1] : null;
+            const match = val.match(/^\[(.*?)\]/); return match ? match[1] : null;
         }
 
         function autoFillProductDetails() {
@@ -948,105 +1161,81 @@
                 document.getElementById('recvProductIdInput').value = product.id;
                 document.getElementById('recvCategory').value = product.category;
                 document.getElementById('recvUnit').value = product.unit !== '-' ? product.unit : '';
+                
+                let latestInv = inventory.slice().reverse().find(inv => inv.productId === product.id);
+                document.getElementById('recvMinStock').value = latestInv && latestInv.minStock !== undefined ? latestInv.minStock : 10;
+                document.getElementById('recvExpiryAlertDays').value = latestInv && latestInv.expiryAlertDays !== undefined ? latestInv.expiryAlertDays : 3;
             } else {
                 const currentIdInput = document.getElementById('recvProductIdInput').value;
-                if(products.find(p => p.id === currentIdInput)) document.getElementById('recvProductIdInput').value = generateNewProductId();
+                if(products.find(p => p.id === currentIdInput)) { document.getElementById('recvProductIdInput').value = generateNewProductId(); }
+                document.getElementById('recvMinStock').value = '';
+                document.getElementById('recvExpiryAlertDays').value = '';
             }
         }
 
         function updateSelectedProductTotal() {
             const productId = getDisbProductId();
+            const disbPrList = document.getElementById('disbPrList'); disbPrList.innerHTML = ''; 
             if (!productId) { document.getElementById('disbStockInfo').classList.add('hidden'); return; }
-            const total = inventory.filter(inv => inv.productId === productId).reduce((sum, item) => sum + item.quantity, 0);
+
+            const availableLots = inventory.filter(inv => inv.productId === productId && inv.quantity > 0);
+            const total = availableLots.reduce((sum, item) => sum + item.quantity, 0);
+
+            let prs = [...new Set(availableLots.map(l => l.pr).filter(p => p && p !== '-'))];
+            prs.forEach(pr => disbPrList.innerHTML += `<option value="${pr}">`);
+
             document.getElementById('disbStockAmount').innerText = total; 
             document.getElementById('disbStockInfo').classList.remove('hidden');
         }
 
-        function handleReceive(e) {
-            e.preventDefault();
-            const inputId = document.getElementById('recvProductIdInput').value.trim();
-            const inputName = document.getElementById('recvProductName').value.trim();
-            const existingById = products.find(p => p.id.toLowerCase() === inputId.toLowerCase());
-            if (existingById && existingById.name.toLowerCase() !== inputName.toLowerCase()) {
-                showAlert('รหัส "' + inputId + '" ซ้ำกับสินค้าที่มีอยู่แล้วคือ\n"' + existingById.name + '"\n\nกรุณาใช้รหัสอื่นสำหรับสินค้าใหม่');
-                return;
-            }
-            const data = {
-                productId: inputId, productName: inputName, category: document.getElementById('recvCategory').value,
-                unit: document.getElementById('recvUnit').value, quantity: document.getElementById('recvQuantity').value,
-                receiveDate: document.getElementById('recvDate').value, expiryDate: document.getElementById('recvExpiryDate').value
-            };
-            showLoader('กำลังบันทึกรับเข้า...');
-            google.script.run.withSuccessHandler(function() { closeModal('receiveModal'); loadData(); }).receiveItem(data);
-        }
-
-        function handleDisburse(e) {
-            e.preventDefault();
-            document.getElementById('disburseError').classList.add('hidden');
-            const productId = getDisbProductId();
-            if (!productId) {
-                document.getElementById('disburseError').innerText = 'กรุณาเลือกเวชภัณฑ์จากรายการให้ถูกต้อง';
-                document.getElementById('disburseError').classList.remove('hidden');
-                return;
-            }
-            const data = { productId: productId, quantity: document.getElementById('disbQuantity').value, department: document.getElementById('disbDepartment').value };
-            showLoader('กำลังเบิกออก...');
-            google.script.run.withSuccessHandler(function(res) {
-                if(res.success) { closeModal('disburseModal'); loadData(); }
-                else { hideLoader(); document.getElementById('disburseError').innerText = res.message; document.getElementById('disburseError').classList.remove('hidden'); }
-            }).disburseItem(data);
-        }
-
         function initFlatpickr() {
             flatpickr.localize(flatpickr.l10ns.th);
-            
-            const formatThaiDate = (date, formatStr) => {
-                let str = flatpickr.formatDate(date, formatStr);
-                const yearCE = date.getFullYear();
-                const yearBE = yearCE + 543;
-                return str.replace(yearCE.toString(), yearBE.toString());
-            };
+            const updateYearBE = function(selectedDates, dateStr, instance) { if(instance && instance.currentYearElement) { instance.currentYearElement.value = instance.currentYear + 543; } };
 
-            const updateYearBE = (instance) => {
-                if (instance.currentYearElement) {
-                    instance.currentYearElement.value = instance.currentYear + 543;
-                }
-            };
-
-            const commonConfig = {
-                locale: "th",
-                altInput: true,
-                enableTime: true,
-                time_24hr: true,
-                altFormat: "d/m/Y H:i",
-                dateFormat: "Y-m-d\\TH:i",
-                disableMobile: true,
-                formatDate: formatThaiDate,
-                onReady: function(a, b, instance) { 
-                    updateYearBE(instance);
-                    if(instance.currentYearElement) instance.currentYearElement.setAttribute("readonly", "readonly");
+            commonConfig = {
+                disableMobile: true, locale: "th", enableTime: true, time_24hr: true, dateFormat: "d/m/Y H:i", allowInput: true,
+                formatDate: (date, format, locale) => {
+                    let yearBE = date.getFullYear() + 543;
+                    let month = String(date.getMonth() + 1).padStart(2, '0');
+                    let day = String(date.getDate()).padStart(2, '0');
+                    let hours = String(date.getHours()).padStart(2, '0');
+                    let minutes = String(date.getMinutes()).padStart(2, '0');
+                    return `${day}/${month}/${yearBE} ${hours}:${minutes}`;
                 },
-                onYearChange: function(a, b, instance) { updateYearBE(instance); },
-                onMonthChange: function(a, b, instance) { updateYearBE(instance); },
-                onValueUpdate: function(a, b, instance) { updateYearBE(instance); }
+                parseDate: (dateStr, format) => {
+                    if (!dateStr) return null;
+                    if (dateStr.includes('-')) {
+                        let parts = dateStr.split('T')[0].split('-');
+                        if (parts.length === 3 && parts[0].length === 4) return new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+                    }
+                    let parts = dateStr.split(' ');
+                    let dateParts = parts[0].split('/');
+                    let timeParts = parts[1] ? parts[1].split(':') : ['00', '00'];
+                    if (dateParts.length === 3) {
+                        let day = parseInt(dateParts[0]), month = parseInt(dateParts[1]) - 1, year = parseInt(dateParts[2]);
+                        if (year > 2400) year -= 543; 
+                        return new Date(year, month, day, parseInt(timeParts[0]) || 0, parseInt(timeParts[1]) || 0);
+                    }
+                    return new Date(dateStr);
+                },
+                onReady: function(d, s, inst) { if(inst.currentYearElement) { inst.currentYearElement.setAttribute('readonly', 'readonly'); } updateYearBE(d, s, inst); },
+                onOpen: updateYearBE, onYearChange: updateYearBE, onMonthChange: updateYearBE, onValueUpdate: updateYearBE
             };
 
-            fpRecvDate = flatpickr("#recvDate", commonConfig);
-            fpRecvExpDate = flatpickr("#recvExpiryDate", commonConfig);
-            fpEditRecvDate = flatpickr("#editReceiveDate", commonConfig);
-            fpEditExpDate = flatpickr("#editExpiryDate", commonConfig);
-            fpEditTransDate = flatpickr("#editTransDate", commonConfig);
+            fpRecvDate = flatpickr("#recvDate", commonConfig); fpRecvExpDate = flatpickr("#recvExpiryDate", commonConfig);
+            fpEditRecvDate = flatpickr("#editReceiveDate", commonConfig); fpEditExpDate = flatpickr("#editExpiryDate", commonConfig);
+            fpEditTransDate = flatpickr("#editTransDate", commonConfig); fpDisbDate = flatpickr("#disbDate", commonConfig);
         }
 
         document.addEventListener('DOMContentLoaded', () => {
-            lucide.createIcons();
-            initFlatpickr(); 
-            
+            lucide.createIcons(); initFlatpickr(); 
+            updateSortIcons('inventory');
+            updateSortIcons('history');
+
             document.getElementById('searchInput').addEventListener('input', () => { currentPageInventory = 1; renderTable(); });
             document.getElementById('categoryFilter').addEventListener('change', () => { currentPageInventory = 1; renderTable(); });
             document.getElementById('historySearchInput').addEventListener('input', () => { currentPageHistory = 1; renderHistory(); });
             document.getElementById('historyCategoryFilter').addEventListener('change', () => { currentPageHistory = 1; renderHistory(); });
-            
             loadData(); 
         });
     </script>

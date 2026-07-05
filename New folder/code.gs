@@ -6,87 +6,61 @@ function doGet() {
 }
 
 function toSheetDateString(val) {
-  if (!val) return '';
-  if (val instanceof Date || Object.prototype.toString.call(val) === '[object Date]') {
-     if (isNaN(val.getTime())) return '';
-     let formatted = Utilities.formatDate(val, "Asia/Bangkok", "dd/MM/yyyy HH:mm:ss");
-     let p = formatted.split(' ');
-     let d = p[0].split('/');
-     let y = parseInt(d[2]);
-     let beYear = y < 2500 ? y + 543 : y;
-     return `'${d[0]}/${d[1]}/${beYear} ${p[1]}`;
+  if (!val || val === '-') return '-';
+  if (val instanceof Date) {
+      let d = val.getDate().toString().padStart(2, '0');
+      let m = (val.getMonth() + 1).toString().padStart(2, '0');
+      let y = val.getFullYear() + 543;
+      let h = val.getHours().toString().padStart(2, '0');
+      let min = val.getMinutes().toString().padStart(2, '0');
+      return `\'${d}/${m}/${y} ${h}:${min}`;
   }
-  
-  let str = val.toString().trim();
-  
-  if (str.includes('T')) {
-      let parts = str.split('T');
-      let dateParts = parts[0].split('-');
-      if(dateParts.length === 3) {
-          let y = parseInt(dateParts[0]);
-          let beYear = y < 2500 ? y + 543 : y;
-          let time = parts[1].length === 5 ? parts[1] + ':00' : parts[1];
-          return `'${dateParts[2]}/${dateParts[1]}/${beYear} ${time}`;
-      }
-  }
-  
-  let dParts = str.split('-');
-  if (dParts.length === 3) {
-      let y = parseInt(dParts[0]);
-      let beYear = y < 2500 ? y + 543 : y;
-      return `'${dParts[2]}/${dParts[1]}/${beYear} 00:00:00`;
-  }
-  
-  return "'" + str; 
+  return "'" + val.toString().trim().replace(/^'/, ''); 
 }
 
-function fromSheetDateString(beStr) {
-  if (!beStr) return '';
-  if (beStr instanceof Date) return Utilities.formatDate(beStr, "Asia/Bangkok", "yyyy-MM-dd'T'HH:mm");
-  
-  let str = beStr.toString().trim().replace(/^'/, '');
-  let parts = str.split(' ');
-  let delim = str.includes('/') ? '/' : '-';
-  let dateParts = parts[0].split(delim);
-  
-  if (dateParts.length === 3) {
-      let day, month, year;
-      if (dateParts[0].length === 4) { 
-          year = parseInt(dateParts[0]);
-          month = dateParts[1];
-          day = dateParts[2];
-      } else { 
-          day = dateParts[0];
-          month = dateParts[1];
-          year = parseInt(dateParts[2]);
-      }
-      if (year > 2400) year -= 543;
-      let ceDateStr = `${year}-${month.padStart(2,'0')}-${day.padStart(2,'0')}`;
-      
-      if (parts[1]) {
-          let timeParts = parts[1].split(':');
-          let hr = timeParts[0].padStart(2,'0');
-          let min = timeParts[1] ? timeParts[1].padStart(2,'0') : '00';
-          return `${ceDateStr}T${hr}:${min}`;
-      }
-      return `${ceDateStr}T00:00`;
+function fromSheetDateString(val) {
+  if (!val || val === '-') return '-';
+  if (val instanceof Date || Object.prototype.toString.call(val) === '[object Date]') {
+     let d = val.getDate().toString().padStart(2, '0');
+     let m = (val.getMonth() + 1).toString().padStart(2, '0');
+     let y = val.getFullYear();
+     let beYear = y < 2500 ? y + 543 : y; 
+     let h = val.getHours().toString().padStart(2, '0');
+     let min = val.getMinutes().toString().padStart(2, '0');
+     return `${d}/${m}/${beYear} ${h}:${min}`;
   }
-  return str; 
+  return val.toString().trim().replace(/^'/, '');
+}
+
+function parseBackendDate(str) {
+  if (!str || str === '-') return new Date(8640000000000000).getTime(); 
+  let parts = str.toString().split(' ');
+  let dParts = parts[0].split('/');
+  if (dParts.length === 3) {
+      let y = parseInt(dParts[2]);
+      if (y > 2400) y -= 543;
+      let m = parseInt(dParts[1]) - 1;
+      let d = parseInt(dParts[0]);
+      let tParts = parts[1] ? parts[1].split(':') : ['00','00'];
+      return new Date(y, m, d, parseInt(tParts[0]), parseInt(tParts[1])).getTime();
+  }
+  return new Date(str).getTime();
 }
 
 function initSheets() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   if (!ss.getSheetByName('Products')) {
     let ws = ss.insertSheet('Products');
-    ws.appendRow(['รหัส', 'ชื่อเวชภัณฑ์', 'หมวดหมู่', 'หน่วยนับ']);
+    // แก้ไขตรงบรรทัดนี้: ลบ 'แจ้งเตือนสต็อกขั้นต่ำ', 'แจ้งเตือนหมดอายุ (วัน)' ออก
+    ws.appendRow(['รหัส', 'ชื่อเวชภัณฑ์', 'หมวดหมู่', 'หน่วยนับ']); 
   }
   if (!ss.getSheetByName('Inventory')) {
     let ws = ss.insertSheet('Inventory');
-    ws.appendRow(['รหัสอ้างอิง', 'รหัสเวชภัณฑ์', 'จำนวน', 'วันหมดอายุ', 'วันรับเข้า']); 
+    ws.appendRow(['รหัสอ้างอิง', 'รหัสเวชภัณฑ์', 'จำนวน', 'วันหมดอายุ', 'วันรับเข้า', 'เลขที่ PR', 'แจ้งเตือนสต็อกขั้นต่ำ', 'แจ้งเตือนหมดอายุ (วัน)']); 
   }
   if (!ss.getSheetByName('Transactions')) {
     let ws = ss.insertSheet('Transactions');
-    ws.appendRow(['เวลา', 'ประเภท', 'รหัสเวชภัณฑ์', 'จำนวน', 'หน่วยงาน/หมายเหตุ']);
+    ws.appendRow(['เวลา', 'ประเภท', 'รหัสเวชภัณฑ์', 'จำนวน', 'หน่วยงาน/หมายเหตุ', 'เลขที่ PR']);
   }
 }
 
@@ -105,29 +79,23 @@ function getInitialData() {
      const type = r[1].toString();
      const pId = r[2].toString();
      const dept = r[4].toString();
+     const pr = r[5] ? r[5].toString().replace(/^'/, '') : ''; 
      
-     let sheetStr = r[0]; 
-     let isoStr = fromSheetDateString(sheetStr);
-     let dateFormatted = '-';
-     if (isoStr && isoStr.includes('T')) {
-         let dt = isoStr.split('T');
-         let dParts = dt[0].split('-');
-         let beYear = parseInt(dParts[0]) + 543;
-         dateFormatted = `${dParts[2]}/${dParts[1]}/${beYear} ${dt[1]}`;
-     }
+     let dateFormatted = fromSheetDateString(r[0]); 
      transactions.push({
        row: i + 1,
        date: dateFormatted,
-       rawDate: isoStr,
+       rawDate: dateFormatted,
        type: type,
        pId: pId,
        qty: r[3].toString(),
-       dept: dept
+       dept: dept,
+       pr: pr
      });
 
      if (!latestTrans[pId]) latestTrans[pId] = { lastRecv: '-', lastDisb: '-' };
      if (type === 'รับเข้า') {
-        latestTrans[pId].lastRecv = fromSheetDateString(r[0]);
+        latestTrans[pId].lastRecv = dateFormatted;
      } else if (type === 'เบิกออก') {
         latestTrans[pId].lastDisb = dept;
      }
@@ -161,7 +129,10 @@ function getInitialData() {
         productId: invData[i][1].toString(),
         quantity: parseInt(invData[i][2]) || 0,
         expiryDate: fromSheetDateString(invData[i][3]),
-        receiveDate: fromSheetDateString(invData[i][4])
+        receiveDate: fromSheetDateString(invData[i][4]),
+        pr: invData[i][5] ? invData[i][5].toString().replace(/^'/, '') : '',
+        minStock: (invData[i][6] !== undefined && invData[i][6] !== '') ? parseInt(invData[i][6]) : 10, // อ่านค่าแจ้งเตือนจาก Inventory โดยตรง
+        expiryAlertDays: (invData[i][7] !== undefined && invData[i][7] !== '') ? parseInt(invData[i][7]) : 3
       });
     }
   }
@@ -182,9 +153,13 @@ function receiveItem(data) {
   const typedName = data.productName.trim();
   const typedCat = data.category.trim();
   const typedUnit = data.unit.trim();
+  const prNumber = data.prNumber ? "'" + data.prNumber.trim() : ''; 
+  
+  let inputMinStock = data.minStock ? parseInt(data.minStock) : 0;
+  let inputExpiryAlert = data.expiryAlertDays ? parseInt(data.expiryAlertDays) : 0;
   
   for(let i=1; i<prodData.length; i++) {
-    if(prodData[i][0].toString().trim().toLowerCase() === typedId.toLowerCase()) {
+    if(prodData[i][0] && prodData[i][0].toString().trim().toLowerCase() === typedId.toLowerCase()) {
       isExistingProduct = true;
       if (!prodData[i][3] || prodData[i][3].toString() === '-') {
         wsProd.getRange(i + 1, 4).setValue(typedUnit);
@@ -194,6 +169,7 @@ function receiveItem(data) {
   }
   
   if (!isExistingProduct) {
+    // แก้ไขตรงบรรทัดนี้: บันทึกเฉพาะข้อมูล 4 คอลัมน์ ไม่บันทึก inputMinStock, inputExpiryAlert ลงในชีต Products แล้ว
     wsProd.appendRow([typedId, typedName, typedCat, typedUnit]); 
   }
 
@@ -201,8 +177,9 @@ function receiveItem(data) {
   const expDateStr = toSheetDateString(data.expiryDate);
   const recvDateStr = toSheetDateString(data.receiveDate);
 
-  wsInv.appendRow([newId, typedId, data.quantity, expDateStr, recvDateStr]);
-  wsTrans.appendRow([recvDateStr, 'รับเข้า', typedId, data.quantity, '-']);
+  // บันทึกลง Inventory ให้ครบ 8 คอลัมน์ (เก็บ MinStock และ AlertDays ไว้ในชีต Inventory เหมือนเดิม)
+  wsInv.appendRow([newId, typedId, data.quantity, expDateStr, recvDateStr, prNumber, inputMinStock, inputExpiryAlert]);
+  wsTrans.appendRow([recvDateStr, 'รับเข้า', typedId, data.quantity, '-', prNumber]);
   
   return { success: true };
 }
@@ -216,37 +193,53 @@ function disburseItem(data) {
   let targetQty = parseInt(data.quantity);
   const productId = data.productId;
   const department = data.department;
+  const targetPr = data.prNumber ? data.prNumber.trim() : '';
+  const disburseDateStr = data.disburseDate ? toSheetDateString(data.disburseDate) : toSheetDateString(new Date());
 
   let lots = [];
+  // 1. ค้นหาสต็อกทั้งหมดของสินค้านั้น
   for(let i=1; i<invData.length; i++) {
-    if(invData[i][1].toString() === productId && parseInt(invData[i][2]) > 0) {
-      let rawIso = fromSheetDateString(invData[i][3]); 
-      lots.push({ row: i + 1, qty: parseInt(invData[i][2]), expiryDate: rawIso });
+    if(invData[i][1] && invData[i][1].toString() === productId && parseInt(invData[i][2]) > 0) {
+      let lotPr = invData[i][5] ? invData[i][5].toString().replace(/^'/, '') : '';
+      if (targetPr !== '' && lotPr !== targetPr) {
+          continue; 
+      }
+      let stringDate = fromSheetDateString(invData[i][3]); 
+      // เพิ่มการเก็บค่า pr: lotPr เข้ามาใน lot ด้วย เพื่อให้ระบบจำได้ว่าบรรทัดนี้คือ PR อะไร
+      lots.push({ row: i + 1, qty: parseInt(invData[i][2]), expiryDate: stringDate, pr: lotPr });
     }
   }
 
-  lots.sort((a, b) => a.expiryDate.localeCompare(b.expiryDate));
+  // 2. เรียงลำดับเอาของใกล้หมดอายุขึ้นก่อน (FIFO)
+  lots.sort((a, b) => parseBackendDate(a.expiryDate) - parseBackendDate(b.expiryDate));
 
   let totalAvailable = lots.reduce((sum, lot) => sum + lot.qty, 0);
   if (targetQty > totalAvailable) {
+    if(targetPr !== '') return { success: false, message: 'จำนวนคงเหลือในเลขที่ PR นี้ไม่เพียงพอ' };
     return { success: false, message: 'จำนวนคงเหลือไม่เพียงพอ' };
   }
 
+  // 3. เริ่มวนลูปตัดสต็อกและบันทึกประวัติทันที
   for (let i = 0; i < lots.length; i++) {
     if (targetQty <= 0) break;
     let lot = lots[i];
+    let deductedQty = 0; // ตัวแปรเก็บจำนวนที่ตัดได้ในรอบนี้
     
+    // หักสต็อกออกจาก Inventory
     if (lot.qty <= targetQty) {
+      deductedQty = lot.qty;
       targetQty -= lot.qty;
       wsInv.getRange(lot.row, 3).setValue(0); 
     } else {
+      deductedQty = targetQty;
       wsInv.getRange(lot.row, 3).setValue(lot.qty - targetQty);
       targetQty = 0;
     }
+
+    // 4. บันทึกประวัติลง Transactions ทันที โดยใช้เลข PR จริงๆ ของล็อตนั้น (lot.pr) และจำนวนที่ถูกตัดจริง (deductedQty)
+    let actualPr = lot.pr !== '' ? "'" + lot.pr : '-';
+    wsTrans.appendRow([disburseDateStr, 'เบิกออก', productId, deductedQty, department, actualPr]);
   }
-  
-  const nowStr = toSheetDateString(new Date());
-  wsTrans.appendRow([nowStr, 'เบิกออก', productId, data.quantity, department]);
   
   return { success: true };
 }
@@ -256,9 +249,10 @@ function editProduct(data) {
   const wsProd = ss.getSheetByName('Products');
   const wsInv = ss.getSheetByName('Inventory');
 
+  // 1. อัปเดตข้อมูล Master สินค้า
   const pData = wsProd.getDataRange().getValues();
   for(let i=1; i<pData.length; i++) {
-    if(pData[i][0].toString() === data.productId) {
+    if(pData[i][0] && pData[i][0].toString() === data.productId) {
       wsProd.getRange(i+1, 2, 1, 3).setValues([[data.productName, data.category, data.unit]]);
       break;
     }
@@ -266,54 +260,77 @@ function editProduct(data) {
 
   const expDateStr = toSheetDateString(data.expiryDate);
   const recvDateStr = toSheetDateString(data.receiveDate);
+  let newPrStr = data.prNumber ? "'" + data.prNumber : ''; 
+  let targetOldPr = data.originalPr === '-' ? '' : data.originalPr;
 
   const invData = wsInv.getDataRange().getValues();
   let found = false;
+  
+  // 2. ค้นหาและอัปเดตข้อมูลเจาะจงเฉพาะเลข PR นั้น
   for(let i = invData.length - 1; i >= 1; i--) {
-    if(invData[i][1].toString() === data.productId) {
+    let rowId = invData[i][1] ? invData[i][1].toString() : '';
+    let rowPr = invData[i][5] ? invData[i][5].toString().replace(/^'/, '') : '';
+    
+    if(rowId === data.productId && rowPr === targetOldPr) {
       if(!found) {
-        wsInv.getRange(i+1, 3, 1, 3).setValues([[data.quantity, expDateStr, recvDateStr]]);
+        // อัปเดตข้อมูลครบ 8 คอลัมน์ (จำนวน, หมดอายุ, รับเข้า, PR ใหม่, สต็อกขั้นต่ำ, เตือนหมดอายุ)
+        wsInv.getRange(i+1, 3, 1, 6).setValues([[data.quantity, expDateStr, recvDateStr, newPrStr, data.minStock, data.expiryAlertDays]]);
         found = true;
       } else {
-        wsInv.deleteRow(i+1);
+        wsInv.deleteRow(i+1); // รวมกรณีที่มีของ PR นี้หลายล็อตให้เหลือบรรทัดเดียว
       }
     }
   }
   if (!found) {
-    wsInv.appendRow([new Date().getTime(), data.productId, data.quantity, expDateStr, recvDateStr]);
+    wsInv.appendRow([new Date().getTime(), data.productId, data.quantity, expDateStr, recvDateStr, newPrStr, data.minStock, data.expiryAlertDays]);
   }
 
   return {success: true};
 }
 
-function deleteProduct(productId) {
+function deleteProduct(data) {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
-  const wsProd = ss.getSheetByName('Products');
   const wsInv = ss.getSheetByName('Inventory');
-
-  const pData = wsProd.getDataRange().getValues();
-  for(let i=pData.length-1; i>=1; i--) {
-    if(pData[i][0].toString() === productId) {
-      wsProd.deleteRow(i+1);
-    }
-  }
-
+  
+  // ลบ Inventory เฉพาะ PR ที่ระบุ
+  let targetPr = data.pr === '-' ? '' : data.pr;
   const invData = wsInv.getDataRange().getValues();
   for(let i=invData.length-1; i>=1; i--) {
-    if(invData[i][1].toString() === productId) {
+    let rowId = invData[i][1] ? invData[i][1].toString() : '';
+    let rowPr = invData[i][5] ? invData[i][5].toString().replace(/^'/, '') : '';
+    
+    if(rowId === data.id && rowPr === targetPr) {
       wsInv.deleteRow(i+1);
     }
   }
+  
+  // ตรวจสอบว่าสินค้าตัวนี้หมดเกลี้ยงจากคลังแล้วหรือยัง ถ้าเกลี้ยงแล้วลบออกจาก Products ด้วย
+  const remainingInv = wsInv.getDataRange().getValues().filter((row, idx) => idx > 0 && row[1] && row[1].toString() === data.id);
+  if (remainingInv.length === 0) {
+      const wsProd = ss.getSheetByName('Products');
+      const pData = wsProd.getDataRange().getValues();
+      for(let i=pData.length-1; i>=1; i--) {
+          if(pData[i][0] && pData[i][0].toString() === data.id) {
+              wsProd.deleteRow(i+1);
+          }
+      }
+  }
+  
   return {success: true};
 }
 
-function adjustInventory(pId, qtyToAdjust, wsInv) {
+function adjustInventory(pId, qtyToAdjust, wsInv, prRef) {
   if (qtyToAdjust === 0) return true;
 
   const invData = wsInv.getDataRange().getValues();
   let lots = [];
+  let targetPr = prRef === '-' ? '' : prRef;
+
   for(let i = 1; i < invData.length; i++) {
-    if(invData[i][1].toString() === pId.toString()) {
+    let rowId = invData[i][1] ? invData[i][1].toString() : '';
+    let rowPr = invData[i][5] ? invData[i][5].toString().replace(/^'/, '') : '';
+    // ล็อกเป้าคืนสต็อกให้ตรง PR ที่ระบุ
+    if(rowId === pId.toString() && (targetPr === '' || rowPr === targetPr)) {
       lots.push({ row: i + 1, qty: parseInt(invData[i][2]) || 0, expiryDate: fromSheetDateString(invData[i][3]) });
     }
   }
@@ -324,13 +341,14 @@ function adjustInventory(pId, qtyToAdjust, wsInv) {
       wsInv.getRange(lastLot.row, 3).setValue(lastLot.qty + qtyToAdjust);
     } else {
       const nowStr = toSheetDateString(new Date());
-      wsInv.appendRow([new Date().getTime().toString(), pId, qtyToAdjust, '-', nowStr]);
+      let prToSave = targetPr !== '' ? "'" + targetPr : '';
+      wsInv.appendRow([new Date().getTime().toString(), pId, qtyToAdjust, '-', nowStr, prToSave, 10, 3]);
     }
   } else {
     let targetQty = Math.abs(qtyToAdjust);
     let activeLots = lots.filter(l => l.qty > 0);
     
-    activeLots.sort((a, b) => a.expiryDate.localeCompare(b.expiryDate));
+    activeLots.sort((a, b) => parseBackendDate(a.expiryDate) - parseBackendDate(b.expiryDate));
 
     let totalAvailable = activeLots.reduce((sum, lot) => sum + lot.qty, 0);
     if (targetQty > totalAvailable) {
@@ -357,16 +375,19 @@ function editTransactionData(data) {
   const wsTrans = ss.getSheetByName('Transactions');
   const wsInv = ss.getSheetByName('Inventory');
 
-  const rowRange = wsTrans.getRange(data.row, 1, 1, 5);
+  const rowRange = wsTrans.getRange(data.row, 1, 1, 6);
   const oldRecord = rowRange.getValues()[0];
   
   const type = oldRecord[1].toString();
   const pId = oldRecord[2].toString();
   const oldQty = parseInt(oldRecord[3]) || 0;
+  const oldPr = oldRecord[5] ? oldRecord[5].toString().replace(/^'/, '') : '';
   const newQty = parseInt(data.qty) || 0;
+  const newPr = data.pr ? data.pr.replace(/^'/, '') : '';
   
   const diff = newQty - oldQty;
 
+  // คืน/ตัดสต็อกโดยเช็คเลข PR เดิมด้วย
   if (diff !== 0) {
     let qtyToAdjust = 0;
     if (type === 'รับเข้า') {
@@ -375,7 +396,7 @@ function editTransactionData(data) {
       qtyToAdjust = -diff; 
     }
 
-    let success = adjustInventory(pId, qtyToAdjust, wsInv);
+    let success = adjustInventory(pId, qtyToAdjust, wsInv, oldPr);
     if (!success) {
       return { success: false, message: 'จำนวนคงเหลือในระบบไม่เพียงพอสำหรับการแก้ไขรายการนี้ (สต็อกจะติดลบ)' };
     }
@@ -386,6 +407,7 @@ function editTransactionData(data) {
   oldRecord[0] = newDateStr;
   oldRecord[3] = newQty;
   oldRecord[4] = data.dept;
+  oldRecord[5] = newPr ? "'" + newPr : '-'; 
   rowRange.setValues([oldRecord]);
 
   return {success: true};
@@ -396,16 +418,17 @@ function deleteTransactionData(rowId) {
   const wsTrans = ss.getSheetByName('Transactions');
   const wsInv = ss.getSheetByName('Inventory');
 
-  const oldRecord = wsTrans.getRange(rowId, 1, 1, 5).getValues()[0];
+  const oldRecord = wsTrans.getRange(rowId, 1, 1, 6).getValues()[0];
   const type = oldRecord[1].toString();
   const pId = oldRecord[2].toString();
   const oldQty = parseInt(oldRecord[3]) || 0;
+  const oldPr = oldRecord[5] ? oldRecord[5].toString().replace(/^'/, '') : '';
 
   let qtyToAdjust = 0;
   if (type === 'รับเข้า') qtyToAdjust = -oldQty; 
   else if (type === 'เบิกออก') qtyToAdjust = oldQty; 
 
-  let success = adjustInventory(pId, qtyToAdjust, wsInv);
+  let success = adjustInventory(pId, qtyToAdjust, wsInv, oldPr);
   if (!success) {
     return { success: false, message: 'ไม่สามารถลบประวัติได้เนื่องจากจะทำให้สต็อกรวมติดลบ' };
   }
